@@ -15,3 +15,6 @@ chromadb==0.5.23
 
 # Modelo local para embeddings
 sentence-transformers==3.3.1
+
+# Lectura de documentos Word para el RAG
+python-docx==1.1.2
