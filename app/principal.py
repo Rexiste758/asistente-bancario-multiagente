@@ -8,7 +8,7 @@ from rich.table import Table
 
 from app.configuracion import configuracion, preparar_carpetas_runtime
 from app.herramientas.herramienta_bd import HerramientaBD
-from app.herramientas.herramienta_rag import HerramientaRAG
+from app.llm.cliente_llm import ClienteLLM
 from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
 from app.registro import configurar_logs
 
@@ -162,6 +162,8 @@ def probar_rag(
     preparar_carpetas_runtime()
     configurar_logs()
 
+    from app.herramientas.herramienta_rag import HerramientaRAG
+
     herramienta_rag = HerramientaRAG()
     respuesta = herramienta_rag.buscar(
         pregunta=pregunta,
@@ -185,6 +187,55 @@ def probar_rag(
         )
 
     consola.print("\n[bold]Trazabilidad RAG:[/bold]")
+    consola.print_json(
+        json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
+    )
+
+
+@cli.command("probar-llm")
+def probar_llm(
+    pregunta: str = typer.Argument(
+        "¿Qué puedes hacer?",
+        help="Pregunta de prueba para validar conexión con el LLM.",
+    ),
+) -> None:
+    """
+    Prueba la conexión con DeepSeek.
+
+    Este comando valida que la API key, el modelo, el thinking mode
+    y los parámetros del LLM estén funcionando desde Docker.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    cliente_llm = ClienteLLM()
+
+    mensajes = [
+        {
+            "role": "system",
+            "content": (
+                "Eres un asistente interno de BANCOMEX. "
+                "Responde en español, de forma breve y profesional. "
+                "No inventes información operativa; esta prueba solo valida "
+                "que el modelo pueda redactar una respuesta natural."
+            ),
+        },
+        {
+            "role": "user",
+            "content": pregunta,
+        },
+    ]
+
+    respuesta = cliente_llm.generar_respuesta(mensajes)
+
+    consola.print(
+        Panel(
+            respuesta["respuesta"],
+            title="Respuesta LLM",
+        )
+    )
+
+    consola.print("\n[bold]Trazabilidad LLM:[/bold]")
     consola.print_json(
         json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
     )
