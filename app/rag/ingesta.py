@@ -1,8 +1,14 @@
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
+# Se configura antes de crear clientes de ChromaDB.
+# Esto ayuda a evitar telemetría anónima durante la demo.
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 import chromadb
+from chromadb.config import Settings
 from docx import Document
 from rich.console import Console
 from rich.table import Table
@@ -16,8 +22,10 @@ consola = Console()
 
 CARPETA_DOCUMENTOS = Path("app/documentos")
 
+# Relación entre documentos Word y procesos del RAG.
 # Estos datos no viven en la BD porque son parte de la configuración documental del RAG.
 # La BD sigue siendo la fuente para área, tiempo, canal y criticidad.
+
 CATALOGO_DOCUMENTOS = {
     "A_aclaraciones_bancarias.docx": {
         "process_id": "A",
@@ -41,7 +49,8 @@ CATALOGO_DOCUMENTOS = {
     },
 }
 
-# Parámetros expuestos explícitamente para cumplir el requisito del RAG.
+# Parámetros expuestos para cumplir el requisito del RAG.
+
 CHUNK_SIZE = configuracion.tamano_chunk
 CHUNK_OVERLAP = configuracion.overlap_chunk
 EMBEDDING_MODEL = configuracion.modelo_embeddings
@@ -51,12 +60,31 @@ SEARCH_STRATEGY = "similarity"
 VECTOR_STORE = "ChromaDB"
 
 
+def silenciar_telemetria_chroma() -> None:
+    """
+    Silencia mensajes internos de telemetría de ChromaDB.
+    """
+    os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
+    loggers_a_silenciar = [
+        "chromadb.telemetry",
+        "chromadb.telemetry.product",
+        "chromadb.telemetry.product.posthog",
+        "posthog",
+    ]
+
+    for nombre_logger in loggers_a_silenciar:
+        logger_ruidoso = logging.getLogger(nombre_logger)
+        logger_ruidoso.disabled = True
+        logger_ruidoso.propagate = False
+        logger_ruidoso.setLevel(logging.CRITICAL)
+
+
 def leer_docx(ruta_documento: Path) -> str:
     """
     Extrae texto de un documento Word.
 
-    Los documentos del RAG son solo texto. Por eso se leen por párrafos
-    y se descartan líneas vacías.
+    Los documentos fuente son solo texto, por eso se leen por párrafos y se descartan líneas vacías.
     """
     documento = Document(ruta_documento)
     parrafos = []
@@ -73,8 +101,7 @@ def dividir_en_chunks(texto: str, chunk_size: int, chunk_overlap: int) -> list[s
     """
     Divide texto largo en fragmentos con traslape.
 
-    El traslape ayuda a no perder contexto cuando una idea queda entre
-    el final de un chunk y el inicio del siguiente.
+    El traslape ayuda a conservar contexto cuando una idea queda entre el final de un fragmento y el inicio del siguiente.
     """
     if chunk_overlap >= chunk_size:
         raise ValueError("RAG_CHUNK_OVERLAP debe ser menor que RAG_CHUNK_SIZE.")
@@ -98,12 +125,11 @@ def dividir_en_chunks(texto: str, chunk_size: int, chunk_overlap: int) -> list[s
     return chunks
 
 
-def reiniciar_coleccion(cliente: chromadb.PersistentClient):
+def reiniciar_coleccion(cliente: Any):
     """
     Reinicia la colección para que la ingesta sea reproducible.
 
-    Si se ejecuta el script varias veces, se elimina la colección anterior
-    y se vuelve a construir desde los documentos Word actuales.
+    Si el script se ejecuta varias veces, se elimina la colección anterior y se vuelve a construir desde los documentos Word actuales.
     """
     nombre = configuracion.nombre_coleccion_rag
 
@@ -127,8 +153,7 @@ def preparar_chunks() -> list[dict[str, Any]]:
     """
     Lee los documentos configurados y genera chunks con metadata.
 
-    Cada chunk conserva el código de proceso para que la búsqueda RAG
-    pueda filtrarse por agente especializado.
+    Cada chunk conserva el código de proceso para que la búsqueda RAG pueda filtrarse por agente especializado.
     """
     registros = []
 
@@ -176,6 +201,7 @@ def ejecutar_ingesta() -> None:
     """
     preparar_carpetas_runtime()
     configurar_logs()
+    silenciar_telemetria_chroma()
 
     logger.info("Iniciando pipeline de ingesta RAG.")
 
@@ -205,7 +231,11 @@ def ejecutar_ingesta() -> None:
             f"pero se configuró {EMBEDDING_DIMENSION}."
         )
 
-    cliente = chromadb.PersistentClient(path=str(configuracion.path_chroma))
+    cliente = chromadb.PersistentClient(
+        path=str(configuracion.path_chroma),
+        settings=Settings(anonymized_telemetry=False),
+    )
+
     coleccion = reiniciar_coleccion(cliente)
 
     coleccion.add(
