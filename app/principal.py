@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from app.configuracion import configuracion, preparar_carpetas_runtime
+from app.herramientas.herramienta_bd import HerramientaBD
 from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
 from app.registro import configurar_logs
 
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 @cli.command()
 def health() -> None:
     """
-    Revisa que la configuración base del proyecto esta cargada correctamente.
+    Revisa que la configuración base del proyecto esté cargando correctamente.
     """
     preparar_carpetas_runtime()
     configurar_logs()
@@ -83,6 +84,67 @@ def preview_request(
     )
 
     consola.print_json(json.dumps(solicitud.model_dump(), ensure_ascii=False))
+
+
+@cli.command("listar-procesos")
+def listar_procesos() -> None:
+    """
+    Lista los procesos operativos disponibles en la base estructurada.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    herramienta_bd = HerramientaBD()
+    respuesta = herramienta_bd.listar_procesos()
+
+    tabla = Table(title="Procesos disponibles")
+    tabla.add_column("Código", style="bold")
+    tabla.add_column("Proceso")
+
+    for proceso in respuesta["resultado"]:
+        tabla.add_row(proceso["proceso_id"], proceso["nombre_proceso"])
+
+    consola.print(tabla)
+
+    consola.print("\n[bold]Trazabilidad BD:[/bold]")
+    consola.print_json(
+        json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
+    )
+
+
+@cli.command("probar-bd")
+def probar_bd(
+    proceso_id: str = typer.Argument(..., help="Código del proceso: A, B, C, D o E."),
+    tipo_consulta: str = typer.Argument(
+        "resumen_operativo",
+        help=(
+            "Consulta permitida: nombre_proceso, area_responsable, "
+            "tiempo_promedio_resolucion, canal_atencion, "
+            "nivel_criticidad o resumen_operativo."
+        ),
+    ),
+) -> None:
+    """
+    Prueba una consulta estructurada usando queries predefinidas.
+
+    Este comando valida que la BD responde solo con los campos solicitados,
+    sin que el LLM genere SQL.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    herramienta_bd = HerramientaBD()
+    respuesta = herramienta_bd.consultar_proceso(proceso_id, tipo_consulta)
+
+    consola.print("[bold green]Resultado BD:[/bold green]")
+    consola.print_json(
+        json.dumps(respuesta["resultado"], ensure_ascii=False)
+    )
+
+    consola.print("\n[bold]Trazabilidad BD:[/bold]")
+    consola.print_json(
+        json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
+    )
 
 
 if __name__ == "__main__":
