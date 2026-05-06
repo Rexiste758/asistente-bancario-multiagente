@@ -8,6 +8,7 @@ from rich.table import Table
 
 from app.configuracion import configuracion, preparar_carpetas_runtime
 from app.herramientas.herramienta_bd import HerramientaBD
+from app.herramientas.herramienta_rag import HerramientaRAG
 from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
 from app.registro import configurar_logs
 
@@ -142,6 +143,48 @@ def probar_bd(
     )
 
     consola.print("\n[bold]Trazabilidad BD:[/bold]")
+    consola.print_json(
+        json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
+    )
+
+
+@cli.command("probar-rag")
+def probar_rag(
+    proceso_id: str = typer.Argument(..., help="Código del proceso: A, B, C, D o E."),
+    pregunta: str = typer.Argument(..., help="Pregunta para buscar en documentos RAG."),
+) -> None:
+    """
+    Prueba la recuperación documental desde ChromaDB.
+
+    Este comando valida que el RAG recupere chunks filtrando por proceso
+    y que devuelva evidencia textual para trazabilidad.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    herramienta_rag = HerramientaRAG()
+    respuesta = herramienta_rag.buscar(
+        pregunta=pregunta,
+        process_id=proceso_id,
+    )
+
+    consola.print("[bold green]Chunks recuperados:[/bold green]")
+
+    for chunk in respuesta["chunks"]:
+        consola.print(
+            Panel(
+                (
+                    f"[bold]Chunk:[/bold] {chunk['chunk_id']}\n"
+                    f"[bold]Documento:[/bold] {chunk['source_file']}\n"
+                    f"[bold]Índice:[/bold] {chunk['chunk_index']}\n"
+                    f"[bold]Distancia:[/bold] {chunk['distance']}\n\n"
+                    f"{chunk['text_preview']}"
+                ),
+                title=f"Proceso {chunk['process_id']} - {chunk['process_name']}",
+            )
+        )
+
+    consola.print("\n[bold]Trazabilidad RAG:[/bold]")
     consola.print_json(
         json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
     )
