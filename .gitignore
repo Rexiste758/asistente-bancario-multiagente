@@ -1,0 +1,32 @@
+# Variables de entorno
+.env
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Logs generados
+app/logs/*.log
+!app/logs/.gitkeep
+
+# Base de datos SQLite 
+data/sqlite/*.db
+data/sqlite/*.db-journal
+data/sqlite/*.db-wal
+data/sqlite/*.db-shm
+!data/sqlite/.gitkeep
+
+# Vector store Chroma
+data/chroma/*
+!data/chroma/.gitkeep
+
+# Archivos del sistema/editor
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,33 @@
+# Variables de entorno
+.env
+
+# Git
+.git/
+.gitignore
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Logs generados
+app/logs/*.log
+
+# Datos generados
+data/sqlite/*.db
+data/sqlite/*.db-journal
+data/sqlite/*.db-wal
+data/sqlite/*.db-shm
+
+# Vector store
+data/chroma/*
+
+# Archivos de editor/sistema
+.DS_Store
+.idea/
+.vscode/

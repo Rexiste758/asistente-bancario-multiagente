@@ -1,0 +1,89 @@
+import json
+import logging
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from app.configuracion import configuracion, preparar_carpetas_runtime
+from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
+from app.registro import configurar_logs
+
+cli = typer.Typer(help="CLI del asistente multiagente para procesos internos bancarios.")
+consola = Console()
+logger = logging.getLogger(__name__)
+
+
+@cli.command()
+def health() -> None:
+    """
+    Revisa que la configuración base del proyecto esta cargada correctamente.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    logger.info("Ejecutando validación health del proyecto.")
+
+    tabla = Table(title="Estado del proyecto")
+    tabla.add_column("Elemento", style="bold")
+    tabla.add_column("Valor")
+
+    tabla.add_row("Ambiente", configuracion.ambiente_app)
+    tabla.add_row("Proveedor LLM", configuracion.proveedor_llm)
+    tabla.add_row("DeepSeek Base URL", configuracion.deepseek_base_url)
+    tabla.add_row("Modelo DeepSeek", configuracion.deepseek_modelo)
+    tabla.add_row("Thinking Mode", configuracion.deepseek_thinking)
+    tabla.add_row(
+        "API key DeepSeek",
+        "configurada" if configuracion.api_key_configurada else "no configurada",
+    )
+    tabla.add_row("Ruta SQLite", configuracion.ruta_sqlite)
+    tabla.add_row("Ruta Chroma", configuracion.ruta_chroma)
+    tabla.add_row("Colección RAG", configuracion.nombre_coleccion_rag)
+    tabla.add_row("Chunk size", str(configuracion.tamano_chunk))
+    tabla.add_row("Chunk overlap", str(configuracion.overlap_chunk))
+    tabla.add_row("Top K", str(configuracion.top_k_rag))
+    tabla.add_row("Modelo embeddings", configuracion.modelo_embeddings)
+    tabla.add_row("Dimensión embeddings", str(configuracion.dimension_embeddings))
+
+    consola.print(tabla)
+    consola.print(
+        Panel.fit(
+            "Validación completada. La API key no se imprime por seguridad.",
+            title="OK",
+        )
+    )
+
+
+@cli.command("preview-request")
+def preview_request(
+    mensaje: str = typer.Argument(..., help="Mensaje que escribiría el usuario."),
+    conversation_id: str = typer.Option("demo-001", help="ID de conversación."),
+    user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
+) -> None:
+    """
+    Muestra el body interno que la CLI enviará al orquestador.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    solicitud = SolicitudAgente(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        message=MensajeUsuario(text=mensaje),
+        metadata=MetadatosSolicitud(channel="cli"),
+    )
+
+    logger.info(
+        "SolicitudAgente creada | conversation_id=%s | user_id=%s | channel=%s",
+        solicitud.conversation_id,
+        solicitud.user_id,
+        solicitud.metadata.channel,
+    )
+
+    consola.print_json(json.dumps(solicitud.model_dump(), ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    cli()

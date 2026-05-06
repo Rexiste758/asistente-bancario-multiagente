@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: asistente-bancario-multiagente
+    env_file:
+      - .env
+    volumes:
+      - .:/proyecto
+    working_dir: /proyecto
+    stdin_open: true
+    tty: true
