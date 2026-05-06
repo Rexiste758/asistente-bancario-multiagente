@@ -9,6 +9,7 @@ from rich.table import Table
 from app.configuracion import configuracion, preparar_carpetas_runtime
 from app.herramientas.herramienta_bd import HerramientaBD
 from app.llm.cliente_llm import ClienteLLM
+from app.memoria.memoria_conversacional import memoria_conversacional
 from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
 from app.registro import configurar_logs
 
@@ -240,6 +241,44 @@ def probar_llm(
         json.dumps(respuesta["trazabilidad"], ensure_ascii=False)
     )
 
+
+@cli.command("probar-memoria")
+def probar_memoria(
+    conversation_id: str = typer.Option("demo-001", help="ID de conversación."),
+) -> None:
+    """
+    Prueba la memoria conversacional en una conversación activa.
+
+    Simula dos turnos para validar que el sistema conserva el último proceso.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    memoria_conversacional.agregar_mensaje(
+        conversation_id=conversation_id,
+        rol="usuario",
+        contenido="Explícame el proceso de aclaraciones.",
+    )
+    memoria_conversacional.actualizar_proceso(
+        conversation_id=conversation_id,
+        proceso_id="A",
+        proceso_nombre="Atención de aclaraciones bancarias",
+    )
+    memoria_conversacional.actualizar_herramienta(
+        conversation_id=conversation_id,
+        herramienta="RAG",
+    )
+
+    memoria_conversacional.agregar_mensaje(
+        conversation_id=conversation_id,
+        rol="usuario",
+        contenido="¿Y cuánto tarda?",
+    )
+
+    resumen = memoria_conversacional.obtener_resumen(conversation_id)
+
+    consola.print("[bold green]Estado de memoria conversacional:[/bold green]")
+    consola.print_json(json.dumps(resumen, ensure_ascii=False))
 
 if __name__ == "__main__":
     cli()
