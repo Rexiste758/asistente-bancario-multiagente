@@ -9,6 +9,7 @@ from rich.table import Table
 from app.configuracion import configuracion, preparar_carpetas_runtime
 from app.herramientas.herramienta_bd import HerramientaBD
 from app.llm.cliente_llm import ClienteLLM
+from app.agentes.catalogo_procesos import detectar_proceso_por_texto, listar_catalogo
 from app.memoria.memoria_conversacional import memoria_conversacional
 from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
 from app.registro import configurar_logs
@@ -279,6 +280,38 @@ def probar_memoria(
 
     consola.print("[bold green]Estado de memoria conversacional:[/bold green]")
     consola.print_json(json.dumps(resumen, ensure_ascii=False))
+
+
+@cli.command("probar-catalogo")
+def probar_catalogo(
+    mensaje: str = typer.Argument(
+        ...,
+        help="Mensaje para probar detección de proceso.",
+    ),
+) -> None:
+    """
+    Prueba la detección inicial de proceso usando el catálogo operativo.
+
+    Esta prueba permite ver por qué el sistema cree que una pregunta
+    corresponde a un proceso A-E.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    deteccion = detectar_proceso_por_texto(mensaje)
+
+    consola.print("[bold green]Resultado de detección:[/bold green]")
+    consola.print_json(json.dumps(deteccion, ensure_ascii=False))
+
+    tabla = Table(title="Procesos disponibles en catálogo")
+    tabla.add_column("Código", style="bold")
+    tabla.add_column("Proceso")
+    tabla.add_column("Agente")
+
+    for proceso in listar_catalogo():
+        tabla.add_row(proceso.proceso_id, proceso.nombre, proceso.agente)
+
+    consola.print(tabla)
 
 if __name__ == "__main__":
     cli()
