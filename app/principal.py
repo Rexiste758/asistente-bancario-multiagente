@@ -11,7 +11,9 @@ from app.herramientas.herramienta_bd import HerramientaBD
 from app.llm.cliente_llm import ClienteLLM
 from app.agentes.catalogo_procesos import detectar_proceso_por_texto, listar_catalogo
 from app.memoria.memoria_conversacional import memoria_conversacional
-from app.modelos import MetadatosSolicitud, MensajeUsuario, SolicitudAgente
+from app.modelos import (MetadatosSolicitud,MensajeUsuario,RespuestaAgente,SolicitudAgente)
+
+
 from app.registro import configurar_logs
 
 cli = typer.Typer(help="CLI del asistente multiagente para procesos internos bancarios.")
@@ -182,6 +184,8 @@ def probar_rag(
                     f"[bold]Documento:[/bold] {chunk['source_file']}\n"
                     f"[bold]Índice:[/bold] {chunk['chunk_index']}\n"
                     f"[bold]Distancia:[/bold] {chunk['distance']}\n\n"
+		    f"[bold]Caracteres texto completo:[/bold] {len(chunk.get('text', ''))}\n"
+                    f"[bold]Caracteres preview:[/bold] {len(chunk.get('text_preview', ''))}\n\n"
                     f"{chunk['text_preview']}"
                 ),
                 title=f"Proceso {chunk['process_id']} - {chunk['process_name']}",
@@ -360,6 +364,110 @@ def probar_agente(
     consola.print("\n[bold]Trazabilidad completa:[/bold]")
     consola.print_json(
         json.dumps(respuesta["sources"], ensure_ascii=False)
+    )
+
+
+@cli.command("chat")
+def chat(
+    mensaje: str = typer.Argument(..., help="Mensaje del usuario."),
+    conversation_id: str = typer.Option("demo-001", help="ID de conversación."),
+    user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
+) -> None:
+    """
+    Ejecuta una solicitud completa:
+    CLI -> Orquestador -> Agente especializado -> herramientas -> respuesta.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    from app.agentes.orquestador import OrquestadorAgentes
+
+    solicitud = SolicitudAgente(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        message=MensajeUsuario(text=mensaje),
+        metadata=MetadatosSolicitud(channel="cli"),
+    )
+
+    orquestador = OrquestadorAgentes()
+    respuesta = orquestador.atender(solicitud)
+
+    _imprimir_respuesta_orquestador(respuesta)
+
+
+@cli.command("chat-interactivo")
+def chat_interactivo(
+    conversation_id: str = typer.Option("demo-001", help="ID de conversación."),
+    user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
+) -> None:
+    """
+    Abre una sesión interactiva para probar memoria conversacional real.
+
+    Usa 'salir' para terminar.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    from app.agentes.orquestador import OrquestadorAgentes
+
+    orquestador = OrquestadorAgentes()
+
+    consola.print(
+        Panel(
+            "Chat interactivo iniciado. Escribe 'salir' para terminar.",
+            title="BANCOMEX",
+        )
+    )
+
+    while True:
+        mensaje = consola.input("[bold cyan]Usuario:[/bold cyan] ").strip()
+
+        if mensaje.lower() in {"salir", "exit", "quit"}:
+            consola.print("[green]Sesión finalizada.[/green]")
+            break
+
+        if not mensaje:
+            continue
+
+        solicitud = SolicitudAgente(
+            conversation_id=conversation_id,
+            user_id=user_id,
+            message=MensajeUsuario(text=mensaje),
+            metadata=MetadatosSolicitud(channel="cli"),
+        )
+
+        respuesta = orquestador.atender(solicitud)
+        _imprimir_respuesta_orquestador(respuesta)
+
+
+def _imprimir_respuesta_orquestador(respuesta: RespuestaAgente) -> None:
+    consola.print(
+        Panel(
+            respuesta.answer,
+            title="Respuesta del asistente",
+        )
+    )
+
+    consola.print("\n[bold]Resumen:[/bold]")
+    consola.print_json(
+        json.dumps(
+            {
+                "conversation_id": respuesta.conversation_id,
+                "process_id": respuesta.process_id,
+                "process_name": respuesta.process_name,
+                "agent_used": respuesta.agent_used,
+                "tools_used": respuesta.tools_used,
+            },
+            ensure_ascii=False,
+        )
+    )
+
+    consola.print("\n[bold]Trazabilidad:[/bold]")
+    consola.print_json(
+        json.dumps(
+            [fuente.model_dump() for fuente in respuesta.sources],
+            ensure_ascii=False,
+        )
     )
 
 if __name__ == "__main__":

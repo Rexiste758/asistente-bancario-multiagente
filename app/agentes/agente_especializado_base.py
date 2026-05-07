@@ -210,11 +210,12 @@ Proceso asignado:
 
 Herramientas disponibles:
 1. RAGTool
-   Cuando el usuario pida información documental o procedimental:
-   objetivo, alcance, flujo, pasos, requisitos, validaciones, escalamiento, cierre o explicación del proceso.
+   Úsala cuando el usuario pida información documental o procedimental:
+   objetivo, alcance, flujo, pasos, requisitos, validaciones, escalamiento, cierre,
+   explicación del proceso o reglas operativas documentadas.
 
 2. DatabaseTool
-   Cuando el usuario pida datos estructurados del proceso:
+   Úsala cuando el usuario pida datos estructurados del proceso:
    área responsable, tiempo promedio de resolución, canal de atención o nivel de criticidad.
 
 Consultas BD permitidas:
@@ -225,18 +226,51 @@ Consultas BD permitidas:
 - resumen_operativo
 - ninguna
 
-Reglas:
+Reglas obligatorias:
+- Si la pregunta pide duración, plazo, tiempo, cuánto tarda, cuánto demora, cuánto podría tardar,
+  en cuánto se resuelve o tiempo estimado del proceso, usa ["DatabaseTool"] con
+  tipo_consulta_bd "tiempo_promedio_resolucion".
+- Si la pregunta pide área, responsable, quién atiende o quién se encarga, usa ["DatabaseTool"]
+  con tipo_consulta_bd "area_responsable".
+- Si la pregunta pide canal, medio, dónde se atiende o por dónde se gestiona, usa ["DatabaseTool"]
+  con tipo_consulta_bd "canal_atencion".
+- Si la pregunta pide criticidad, nivel crítico, qué tan crítico o prioridad operativa,
+  usa ["DatabaseTool"] con tipo_consulta_bd "nivel_criticidad".
+- Si la pregunta pide varios datos estructurados a la vez, usa ["DatabaseTool"]
+  con tipo_consulta_bd "resumen_operativo".
 - Si la pregunta pide solo explicación o procedimiento, usa ["RAGTool"] y tipo_consulta_bd "ninguna".
-- Si la pregunta pide solo un dato estructurado, usa ["DatabaseTool"] y la consulta BD correspondiente.
 - Si la pregunta pide explicación y además un dato estructurado, usa ["RAGTool", "DatabaseTool"].
-- Si pide varios datos estructurados a la vez, usa tipo_consulta_bd "resumen_operativo".
-- Si no estás seguro, usa RAGTool como respaldo y confianza "baja".
+- Si la pregunta parece referirse a un caso particular pero pide duración, responde con el
+  tiempo promedio del proceso desde BD; la respuesta final podrá aclarar que es un promedio general.
+- Nunca generes SQL.
 - Nunca inventes consultas fuera de la lista permitida.
+- Si no estás seguro, usa ["RAGTool"] con tipo_consulta_bd "ninguna" y confianza "baja".
+
+Ejemplos:
+Pregunta: "¿Cuánto tarda?"
+Respuesta:
+{{"tools":["DatabaseTool"],"tipo_consulta_bd":"tiempo_promedio_resolucion","motivo":"El usuario pregunta por la duración del proceso.","confianza":"alta"}}
+
+Pregunta: "¿Y eso cuánto podría tardar?"
+Respuesta:
+{{"tools":["DatabaseTool"],"tipo_consulta_bd":"tiempo_promedio_resolucion","motivo":"La pregunta es de seguimiento y solicita el tiempo promedio del proceso asignado.","confianza":"alta"}}
+
+Pregunta: "¿Cuál es el plazo?"
+Respuesta:
+{{"tools":["DatabaseTool"],"tipo_consulta_bd":"tiempo_promedio_resolucion","motivo":"El usuario solicita el plazo o tiempo promedio del proceso.","confianza":"alta"}}
+
+Pregunta: "¿Por qué canal se atiende?"
+Respuesta:
+{{"tools":["DatabaseTool"],"tipo_consulta_bd":"canal_atencion","motivo":"El usuario solicita el canal de atención del proceso.","confianza":"alta"}}
+
+Pregunta: "Explícame cuándo se escala"
+Respuesta:
+{{"tools":["RAGTool"],"tipo_consulta_bd":"ninguna","motivo":"El usuario solicita información procedimental documentada.","confianza":"alta"}}
 
 Pregunta del usuario:
 {pregunta}
 
-Devuelve exactamente este JSON:
+Devuelve exclusivamente JSON válido con este formato:
 {{
   "tools": ["RAGTool"],
   "tipo_consulta_bd": "ninguna",
@@ -359,6 +393,10 @@ Devuelve exactamente este JSON:
             "No inventes áreas, tiempos, canales, criticidad, pasos, políticas ni responsables. "
             "Si la información no está disponible en el contexto, indícalo claramente. "
             "Responde en español, de forma profesional y clara."
+            "No inventes áreas, tiempos, canales, criticidad, pasos, políticas ni responsables. "
+            "No agregues recomendaciones genéricas como contactar a un ejecutivo, proporcionar más detalles "
+            "o acudir a un área, salvo que esa instrucción aparezca en el contexto recuperado. "
+            "Si la información no está disponible en el contexto, indícalo claramente. "
         )
 
         user_prompt = (

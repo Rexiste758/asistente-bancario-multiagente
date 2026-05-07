@@ -71,33 +71,53 @@ def leer_docx(ruta_documento: Path) -> str:
     return "\n".join(parrafos)
 
 
-def dividir_en_chunks(texto: str, chunk_size: int, chunk_overlap: int) -> list[str]:
+def dividir_en_chunks(
+    texto: str,
+    chunk_size: int,
+    chunk_overlap: int,
+) -> list[str]:
     """
-    Divide texto largo en fragmentos con traslape.
+    Divide el documento en chunks agrupando párrafos completos.
 
-    El traslape ayuda a conservar contexto cuando una idea queda entre el final de un fragmento y el inicio del siguiente.
+    chunk_size funciona como tamaño objetivo en caracteres.
+    chunk_overlap funciona como cantidad de párrafos que se repiten
+    entre un chunk y el siguiente.
+
+    Esto evita cortar frases operativas a la mitad.
     """
-    if chunk_overlap >= chunk_size:
-        raise ValueError("RAG_CHUNK_OVERLAP debe ser menor que RAG_CHUNK_SIZE.")
+    parrafos = [
+        parrafo.strip()
+        for parrafo in texto.split("\n")
+        if parrafo.strip()
+    ]
+
+    if not parrafos:
+        return []
 
     chunks = []
-    inicio = 0
-    longitud = len(texto)
+    parrafos_actuales = []
+    longitud_actual = 0
 
-    while inicio < longitud:
-        fin = min(inicio + chunk_size, longitud)
-        chunk = texto[inicio:fin].strip()
+    for parrafo in parrafos:
+        longitud_parrafo = len(parrafo)
 
-        if chunk:
-            chunks.append(chunk)
+        if parrafos_actuales and longitud_actual + longitud_parrafo > chunk_size:
+            chunks.append("\n\n".join(parrafos_actuales))
 
-        if fin == longitud:
-            break
+            if chunk_overlap > 0:
+                parrafos_actuales = parrafos_actuales[-chunk_overlap:]
+                longitud_actual = sum(len(item) for item in parrafos_actuales)
+            else:
+                parrafos_actuales = []
+                longitud_actual = 0
 
-        inicio = fin - chunk_overlap
+        parrafos_actuales.append(parrafo)
+        longitud_actual += longitud_parrafo
+
+    if parrafos_actuales:
+        chunks.append("\n\n".join(parrafos_actuales))
 
     return chunks
-
 
 def reiniciar_coleccion(cliente: Any):
     """
