@@ -50,12 +50,7 @@ def inicializar_base_datos() -> None:
 
         cursor = conexion.execute(
             """
-            SELECT proceso_id,
-                   nombre_proceso,
-                   area_responsable,
-                   tiempo_promedio_resolucion,
-                   canal_atencion,
-                   nivel_criticidad
+            SELECT proceso_id,nombre_proceso,area_responsable,tiempo_promedio_resolucion,canal_atencion,nivel_criticidad
             FROM procesos_operativos
             ORDER BY proceso_id
             """

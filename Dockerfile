@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/proyecto
 WORKDIR /proyecto
 
-# Dependencias del sistema necesarias para algunas librerías de embeddings y vector store.
+# Dependencias del sistema necesarias para librerías de embeddings y vector store.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \

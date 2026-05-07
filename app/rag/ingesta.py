@@ -23,7 +23,7 @@ consola = Console()
 CARPETA_DOCUMENTOS = Path("app/documentos")
 
 
-# Parámetros expuestos para cumplir el requisito del RAG.
+# Parámetros expuestos para el RAG.
 
 CHUNK_SIZE = configuracion.tamano_chunk
 CHUNK_OVERLAP = configuracion.overlap_chunk
@@ -71,11 +71,7 @@ def leer_docx(ruta_documento: Path) -> str:
     return "\n".join(parrafos)
 
 
-def dividir_en_chunks(
-    texto: str,
-    chunk_size: int,
-    chunk_overlap: int,
-) -> list[str]:
+def dividir_en_chunks(texto: str,chunk_size: int,chunk_overlap: int,) -> list[str]:
     """
     Divide el documento en chunks agrupando párrafos completos.
 

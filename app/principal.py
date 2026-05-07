@@ -366,6 +366,30 @@ def probar_agente(
         json.dumps(respuesta["sources"], ensure_ascii=False)
     )
 
+def _limpiar_texto_cli(texto: str) -> str:
+    """
+    Limpia caracteres Unicode inválidos que pueden aparecer al capturar texto
+    desde PowerShell/Docker en modo interactivo.
+    """
+    return "".join(
+        caracter
+        for caracter in texto
+        if not 0xD800 <= ord(caracter) <= 0xDFFF
+    ).strip()
+
+
+def _crear_solicitud_chat(
+    mensaje: str,
+    conversation_id: str,
+    user_id: str,
+) -> SolicitudAgente:
+    return SolicitudAgente(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        message=MensajeUsuario(text=_limpiar_texto_cli(mensaje)),
+        metadata=MetadatosSolicitud(channel="cli"),
+    )
+
 
 @cli.command("chat")
 def chat(
@@ -374,25 +398,57 @@ def chat(
     user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
 ) -> None:
     """
-    Ejecuta una solicitud completa:
-    CLI -> Orquestador -> Agente especializado -> herramientas -> respuesta.
+    Ejecuta una solicitud completa con salida limpia:
+    respuesta + resumen.
     """
     preparar_carpetas_runtime()
     configurar_logs()
 
     from app.agentes.orquestador import OrquestadorAgentes
 
-    solicitud = SolicitudAgente(
+    solicitud = _crear_solicitud_chat(
+        mensaje=mensaje,
         conversation_id=conversation_id,
         user_id=user_id,
-        message=MensajeUsuario(text=mensaje),
-        metadata=MetadatosSolicitud(channel="cli"),
     )
 
     orquestador = OrquestadorAgentes()
     respuesta = orquestador.atender(solicitud)
 
-    _imprimir_respuesta_orquestador(respuesta)
+    _imprimir_respuesta_orquestador(
+        respuesta=respuesta,
+        mostrar_trazabilidad=False,
+    )
+
+
+@cli.command("chat-trazabilidad")
+def chat_trazabilidad(
+    mensaje: str = typer.Argument(..., help="Mensaje del usuario."),
+    conversation_id: str = typer.Option("demo-001", help="ID de conversación."),
+    user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
+) -> None:
+    """
+    Ejecuta una solicitud completa con salida técnica:
+    respuesta + resumen + trazabilidad completa.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    from app.agentes.orquestador import OrquestadorAgentes
+
+    solicitud = _crear_solicitud_chat(
+        mensaje=mensaje,
+        conversation_id=conversation_id,
+        user_id=user_id,
+    )
+
+    orquestador = OrquestadorAgentes()
+    respuesta = orquestador.atender(solicitud)
+
+    _imprimir_respuesta_orquestador(
+        respuesta=respuesta,
+        mostrar_trazabilidad=True,
+    )
 
 
 @cli.command("chat-interactivo")
@@ -401,10 +457,41 @@ def chat_interactivo(
     user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
 ) -> None:
     """
-    Abre una sesión interactiva para probar memoria conversacional real.
+    Abre una sesión interactiva limpia para probar memoria conversacional real.
 
+    Muestra respuesta + resumen.
     Usa 'salir' para terminar.
     """
+    _ejecutar_chat_interactivo(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        mostrar_trazabilidad=False,
+    )
+
+
+@cli.command("chat-interactivo-trazabilidad")
+def chat_interactivo_trazabilidad(
+    conversation_id: str = typer.Option("demo-001", help="ID de conversación."),
+    user_id: str = typer.Option("usuario_cli", help="ID del usuario."),
+) -> None:
+    """
+    Abre una sesión interactiva técnica para probar memoria y trazabilidad completa.
+
+    Muestra respuesta + resumen + trazabilidad.
+    Usa 'salir' para terminar.
+    """
+    _ejecutar_chat_interactivo(
+        conversation_id=conversation_id,
+        user_id=user_id,
+        mostrar_trazabilidad=True,
+    )
+
+
+def _ejecutar_chat_interactivo(
+    conversation_id: str,
+    user_id: str,
+    mostrar_trazabilidad: bool,
+) -> None:
     preparar_carpetas_runtime()
     configurar_logs()
 
@@ -421,6 +508,7 @@ def chat_interactivo(
 
     while True:
         mensaje = consola.input("[bold cyan]Usuario:[/bold cyan] ").strip()
+        mensaje = _limpiar_texto_cli(mensaje)
 
         if mensaje.lower() in {"salir", "exit", "quit"}:
             consola.print("[green]Sesión finalizada.[/green]")
@@ -429,18 +517,24 @@ def chat_interactivo(
         if not mensaje:
             continue
 
-        solicitud = SolicitudAgente(
+        solicitud = _crear_solicitud_chat(
+            mensaje=mensaje,
             conversation_id=conversation_id,
             user_id=user_id,
-            message=MensajeUsuario(text=mensaje),
-            metadata=MetadatosSolicitud(channel="cli"),
         )
 
         respuesta = orquestador.atender(solicitud)
-        _imprimir_respuesta_orquestador(respuesta)
+
+        _imprimir_respuesta_orquestador(
+            respuesta=respuesta,
+            mostrar_trazabilidad=mostrar_trazabilidad,
+        )
 
 
-def _imprimir_respuesta_orquestador(respuesta: RespuestaAgente) -> None:
+def _imprimir_respuesta_orquestador(
+    respuesta: RespuestaAgente,
+    mostrar_trazabilidad: bool = False,
+) -> None:
     consola.print(
         Panel(
             respuesta.answer,
@@ -462,13 +556,15 @@ def _imprimir_respuesta_orquestador(respuesta: RespuestaAgente) -> None:
         )
     )
 
-    consola.print("\n[bold]Trazabilidad:[/bold]")
-    consola.print_json(
-        json.dumps(
-            [fuente.model_dump() for fuente in respuesta.sources],
-            ensure_ascii=False,
+    if mostrar_trazabilidad:
+        consola.print("\n[bold]Trazabilidad:[/bold]")
+        consola.print_json(
+            json.dumps(
+                [fuente.model_dump() for fuente in respuesta.sources],
+                ensure_ascii=False,
+            )
         )
-    )
+
 
 if __name__ == "__main__":
     cli()

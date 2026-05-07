@@ -60,8 +60,7 @@ class HerramientaRAG:
         """
         Obtiene la colección RAG.
 
-        Si no existe, significa que falta ejecutar la ingesta:
-        docker compose run --rm app python -m app.rag.ingesta
+        Si no existe, significa que falta ejecutar la ingesta.
         """
         try:
             return self.cliente.get_collection(name=self.nombre_coleccion)

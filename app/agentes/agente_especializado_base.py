@@ -10,14 +10,7 @@ logger = logging.getLogger(__name__)
 
 TOOLS_PERMITIDAS = {"RAGTool", "DatabaseTool"}
 
-CONSULTAS_BD_PERMITIDAS = {
-    "area_responsable",
-    "tiempo_promedio_resolucion",
-    "canal_atencion",
-    "nivel_criticidad",
-    "resumen_operativo",
-    "ninguna",
-}
+CONSULTAS_BD_PERMITIDAS = {"area_responsable","tiempo_promedio_resolucion","canal_atencion","nivel_criticidad","resumen_operativo","ninguna",}
 
 CONFIANZAS_PERMITIDAS = {"alta", "media", "baja"}
 
@@ -80,21 +73,14 @@ class AgenteEspecializadoBase:
 
         logger.info(
             "Agente especializado clasificó herramientas | agente=%s | proceso=%s | tools=%s | bd=%s",
-            self.proceso.agente,
-            self.proceso.proceso_id,
-            decision["tools"],
-            decision["tipo_consulta_bd"],
-        )
+            self.proceso.agente,self.proceso.proceso_id,decision["tools"],decision["tipo_consulta_bd"],)
 
         fuentes = [decision["trazabilidad"]]
         contexto_rag = ""
         contexto_bd = ""
 
         if "RAGTool" in decision["tools"]:
-            resultado_rag = self.herramienta_rag.buscar(
-                pregunta=pregunta,
-                process_id=self.proceso.proceso_id,
-            )
+            resultado_rag = self.herramienta_rag.buscar(pregunta=pregunta,process_id=self.proceso.proceso_id,)
             fuentes.append(resultado_rag["trazabilidad"])
             contexto_rag = self._construir_contexto_rag(resultado_rag["chunks"])
 
@@ -109,12 +95,7 @@ class AgenteEspecializadoBase:
             fuentes.append(resultado_bd["trazabilidad"])
             contexto_bd = self._construir_contexto_bd(resultado_bd["resultado"])
 
-        mensajes = self._crear_mensajes_respuesta_final(
-            pregunta=pregunta,
-            contexto_rag=contexto_rag,
-            contexto_bd=contexto_bd,
-            herramientas=decision["tools"],
-        )
+        mensajes = self._crear_mensajes_respuesta_final(pregunta=pregunta,contexto_rag=contexto_rag,contexto_bd=contexto_bd,herramientas=decision["tools"],)
 
         resultado_llm = self.cliente_llm.generar_respuesta(mensajes)
         resultado_llm["trazabilidad"]["details"]["usage"] = "respuesta_final"
@@ -127,11 +108,7 @@ class AgenteEspecializadoBase:
             "agent_used": self.proceso.agente,
             "tools_used": decision["tools"],
             "sources": fuentes,
-            "tool_decision": {
-                "tools": decision["tools"],
-                "tipo_consulta_bd": decision["tipo_consulta_bd"],
-                "motivo": decision["motivo"],
-                "confianza": decision["confianza"],
+            "tool_decision": {"tools": decision["tools"],"tipo_consulta_bd": decision["tipo_consulta_bd"],"motivo": decision["motivo"],"confianza": decision["confianza"],
             },
         }
 
@@ -179,15 +156,7 @@ class AgenteEspecializadoBase:
 
         trazabilidad_llm = resultado_llm["trazabilidad"]
         trazabilidad_llm["details"]["usage"] = "clasificador_herramientas"
-
-        # No guardamos decision_validada completa dentro de la trazabilidad,
-        # porque después decision_validada también recibe la trazabilidad.
-        # Si guardáramos todo, se crearía una referencia circular.
-        trazabilidad_llm["details"]["decision"] = {
-            "tools": decision_validada["tools"],
-            "tipo_consulta_bd": decision_validada["tipo_consulta_bd"],
-            "motivo": decision_validada["motivo"],
-            "confianza": decision_validada["confianza"],
+        trazabilidad_llm["details"]["decision"] = {"tools": decision_validada["tools"],"tipo_consulta_bd": decision_validada["tipo_consulta_bd"],"motivo": decision_validada["motivo"],"confianza": decision_validada["confianza"],
         }
 
         decision_validada["trazabilidad"] = trazabilidad_llm

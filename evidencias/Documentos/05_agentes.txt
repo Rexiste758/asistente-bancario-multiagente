@@ -1,0 +1,26 @@
+﻿**********************
+Inicio de la transcripción de Windows PowerShell
+Hora de inicio: 20260507141018
+Nombre de usuario: LAPTOP-D7SGHFMT\joshu
+Usuario RunAs: LAPTOP-D7SGHFMT\joshu
+Nombre de la configuración: 
+Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
+Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Id. de proceso: 2564
+PSVersion: 5.1.26100.8115
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
+BuildVersion: 10.0.26100.8115
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+La transcripción ha comenzado. El archivo de salida es evidencias\05_agentes.txt
+
+
+
+**********************
+Fin de la transcripción de Windows PowerShell
+Hora de finalización: 20260507141150
+**********************

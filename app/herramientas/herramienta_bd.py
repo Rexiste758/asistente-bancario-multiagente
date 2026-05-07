@@ -100,9 +100,6 @@ class HerramientaBD:
     def _validar_base_existente(self) -> None:
         """
         Verifica que el archivo SQLite exista antes de consultar.
-
-        Si no existe, probablemente falta ejecutar:
-        docker compose run --rm app python -m app.base_datos.inicializar_bd
         """
         if not self.ruta_bd.exists():
             raise FileNotFoundError(

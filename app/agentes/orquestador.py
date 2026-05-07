@@ -4,26 +4,17 @@ import re
 from typing import Any
 
 from app.agentes.agentes_proceso import crear_agente_por_proceso
-from app.agentes.catalogo_procesos import (
-    detectar_proceso_por_texto,
-    listar_catalogo,
-    obtener_proceso,
-)
+from app.agentes.catalogo_procesos import (detectar_proceso_por_texto,listar_catalogo,obtener_proceso,)
 from app.llm.cliente_llm import ClienteLLM
 from app.memoria.memoria_conversacional import memoria_conversacional
 from app.modelos import FuenteTrazabilidad, RespuestaAgente, SolicitudAgente
 
 logger = logging.getLogger(__name__)
 
-ACCIONES_PERMITIDAS = {"orientacion", "usar_memoria", "usar_proceso", "sin_proceso"}
+ACCIONES_PERMITIDAS = {"orientacion", "usar_memoria", "usar_proceso", "sin_proceso","listar_procesos_bd"}
 PROCESOS_PERMITIDOS = {"A", "B", "C", "D", "E", "NINGUNO"}
 CONFIANZAS_PERMITIDAS = {"alta", "media", "baja"}
-TIPOS_SIN_PROCESO_PERMITIDOS = {
-    "fuera_alcance",
-    "ambiguo",
-    "falta_contexto",
-    "no_aplica",
-}
+TIPOS_SIN_PROCESO_PERMITIDOS = {"fuera_alcance","ambiguo","falta_contexto","no_aplica",}
 
 
 class OrquestadorAgentes:
@@ -66,6 +57,15 @@ class OrquestadorAgentes:
 
         if decision_ruta["accion"] == "orientacion":
             respuesta = self._responder_orientacion(solicitud, fuentes)
+            memoria_conversacional.agregar_mensaje(
+                conversation_id=conversation_id,
+                rol="asistente",
+                contenido=respuesta.answer,
+            )
+            return respuesta
+
+        if decision_ruta["accion"] == "listar_procesos_bd":
+            respuesta = self._responder_listado_procesos_bd(solicitud, fuentes)
             memoria_conversacional.agregar_mensaje(
                 conversation_id=conversation_id,
                 rol="asistente",
@@ -261,6 +261,7 @@ Procesos disponibles:
 
 Acciones permitidas:
 - orientacion: el usuario pregunta qué puede hacer el asistente, pide ayuda general o procesos disponibles.
+- listar_procesos_bd: el usuario pide los procesos registrados en la base de datos, base operativa, SQLite o BD estructurada.
 - usar_memoria: la pregunta depende claramente del proceso anterior de la misma conversación.
 - usar_proceso: la pregunta menciona claramente un proceso A-E.
 - sin_proceso: no hay suficiente información, está fuera de alcance o requiere aclaración.
@@ -274,10 +275,13 @@ Cuando uses "sin_proceso", clasifica también el motivo en tipo_sin_proceso:
 Reglas:
 - Usa el catálogo como evidencia, no como verdad absoluta.
 - Si el catálogo detecta un proceso claro y la pregunta no depende de memoria, normalmente usa "usar_proceso".
+- Si el usuario pregunta qué procesos existen registrados en la base de datos, usa "listar_procesos_bd".
 - Si la pregunta actual no menciona proceso pero la memoria tiene ultimo_proceso_id, usa "usar_memoria" cuando sea razonable.
 - Si el usuario pide capacidades generales, usa "orientacion".
 - Si no puedes decidir con seguridad, usa "sin_proceso".
 - Si la pregunta es sobre ingresos, ventas, utilidades, estados financieros, acciones, precios, nómina o información corporativa, usa "sin_proceso" con tipo_sin_proceso "fuera_alcance".
+- Si el usuario compara dos o más procesos posibles, por ejemplo "queja o aclaración", "incidencia o queja", "cancelación o aclaración", y no hay información suficiente para elegir uno, usa "sin_proceso" con tipo_sin_proceso "falta_contexto".
+- No elijas un solo proceso cuando la intención principal del usuario sea comparar opciones entre procesos.
 - No inventes procesos fuera de A, B, C, D o E.
 
 Estado de memoria conversacional:
@@ -348,8 +352,12 @@ Devuelve exactamente este JSON:
                 tipo_sin_proceso = "falta_contexto"
                 motivo = (
                     motivo
-                    or "Se intentó usar memoria, pero no existe proceso previo en la conversación."
-                )
+                    or "Se intentó usar memoria, pero no existe proceso previo en la conversación.")
+
+        elif accion == "listar_procesos_bd":
+            proceso_final = None
+            tipo_sin_proceso = "no_aplica"
+
 
         elif accion == "usar_proceso":
             if proceso_id in {"A", "B", "C", "D", "E"} and confianza != "baja":
@@ -400,6 +408,41 @@ Devuelve exactamente este JSON:
             process_name=None,
             agent_used="OrquestadorAgentes",
             tools_used=[],
+            sources=[
+                FuenteTrazabilidad(type=fuente["type"], details=fuente["details"])
+                for fuente in fuentes
+            ],
+        )
+
+    def _responder_listado_procesos_bd(
+        self,
+        solicitud: SolicitudAgente,
+        fuentes: list[dict[str, Any]],
+    ) -> RespuestaAgente:
+        from app.herramientas.herramienta_bd import HerramientaBD
+
+        herramienta_bd = HerramientaBD()
+        resultado_bd = herramienta_bd.listar_procesos()
+
+        fuentes.append(resultado_bd["trazabilidad"])
+
+        procesos = "\n".join(
+            f"- {proceso['proceso_id']}: {proceso['nombre_proceso']}"
+            for proceso in resultado_bd["resultado"]
+        )
+
+        respuesta = (
+            "Los procesos registrados en la base de datos operativa son:\n\n"
+            f"{procesos}"
+        )
+
+        return RespuestaAgente(
+            conversation_id=solicitud.conversation_id,
+            answer=respuesta,
+            process_id=None,
+            process_name=None,
+            agent_used="OrquestadorAgentes",
+            tools_used=["DatabaseTool"],
             sources=[
                 FuenteTrazabilidad(type=fuente["type"], details=fuente["details"])
                 for fuente in fuentes

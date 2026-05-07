@@ -317,9 +317,7 @@ def configurar_estilo(documento: Document) -> None:
 def crear_documento(nombre_archivo: str, datos: dict) -> None:
     documento = Document()
     configurar_estilo(documento)
-
     documento.add_heading(datos["titulo"], level=1)
-
     documento.add_paragraph(f"Código de proceso: {datos['codigo']}")
     documento.add_paragraph(f"Nombre del proceso: {datos['titulo']}")
     documento.add_paragraph("Institución: BANCOMEX")
