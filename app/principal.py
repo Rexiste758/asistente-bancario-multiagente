@@ -307,9 +307,10 @@ def probar_catalogo(
     tabla.add_column("Código", style="bold")
     tabla.add_column("Proceso")
     tabla.add_column("Agente")
+    tabla.add_column("Documento RAG")
 
     for proceso in listar_catalogo():
-        tabla.add_row(proceso.proceso_id, proceso.nombre, proceso.agente)
+        tabla.add_row(proceso.proceso_id, proceso.nombre, proceso.agente,proceso.documento_rag)
 
     consola.print(tabla)
 

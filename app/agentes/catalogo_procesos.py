@@ -14,6 +14,7 @@ class ReglaProceso:
     proceso_id: str
     nombre: str
     agente: str
+    documento_rag: str
     frases_fuertes: list[str] = field(default_factory=list)
     terminos_apoyo: list[str] = field(default_factory=list)
 
@@ -23,6 +24,7 @@ CATALOGO_PROCESOS: dict[str, ReglaProceso] = {
         proceso_id="A",
         nombre="Atención de aclaraciones bancarias",
         agente="AgenteAclaraciones",
+	documento_rag="A_aclaraciones_bancarias.docx",
         frases_fuertes=[
         "levantar una aclaracion",
         "presentar una aclaracion",
@@ -69,6 +71,7 @@ CATALOGO_PROCESOS: dict[str, ReglaProceso] = {
         proceso_id="B",
         nombre="Cancelación de productos financieros",
         agente="AgenteCancelacion",
+	documento_rag="B_cancelacion_productos.docx",
         frases_fuertes=[
             "cancelar una tarjeta",
             "cancelar mi tarjeta",
@@ -103,6 +106,7 @@ CATALOGO_PROCESOS: dict[str, ReglaProceso] = {
         proceso_id="C",
         nombre="Escalamiento de incidencias operativas",
         agente="AgenteIncidencias",
+	documento_rag="C_escalamiento_incidencias.docx",
         frases_fuertes=[
             "el sistema marca error",
             "sistema marca error",
@@ -137,6 +141,7 @@ CATALOGO_PROCESOS: dict[str, ReglaProceso] = {
         proceso_id="D",
         nombre="Actualización de datos del cliente",
         agente="AgenteDatosCliente",
+	documento_rag="D_actualizacion_datos_cliente.docx",
         frases_fuertes=[
             "actualizar datos",
             "actualizar mis datos",
@@ -171,6 +176,7 @@ CATALOGO_PROCESOS: dict[str, ReglaProceso] = {
         proceso_id="E",
         nombre="Gestión de quejas internas",
         agente="AgenteQuejas",
+	documento_rag="E_quejas_internas.docx",
         frases_fuertes=[
             "levantar una queja",
             "presentar una queja",

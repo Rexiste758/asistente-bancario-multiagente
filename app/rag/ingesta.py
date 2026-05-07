@@ -13,7 +13,7 @@ from docx import Document
 from rich.console import Console
 from rich.table import Table
 from sentence_transformers import SentenceTransformer
-
+from app.agentes.catalogo_procesos import listar_catalogo
 from app.configuracion import configuracion, preparar_carpetas_runtime
 from app.registro import configurar_logs
 
@@ -22,32 +22,6 @@ consola = Console()
 
 CARPETA_DOCUMENTOS = Path("app/documentos")
 
-# Relación entre documentos Word y procesos del RAG.
-# Estos datos no viven en la BD porque son parte de la configuración documental del RAG.
-# La BD sigue siendo la fuente para área, tiempo, canal y criticidad.
-
-CATALOGO_DOCUMENTOS = {
-    "A_aclaraciones_bancarias.docx": {
-        "process_id": "A",
-        "process_name": "Atención de aclaraciones bancarias",
-    },
-    "B_cancelacion_productos.docx": {
-        "process_id": "B",
-        "process_name": "Cancelación de productos financieros",
-    },
-    "C_escalamiento_incidencias.docx": {
-        "process_id": "C",
-        "process_name": "Escalamiento de incidencias operativas",
-    },
-    "D_actualizacion_datos_cliente.docx": {
-        "process_id": "D",
-        "process_name": "Actualización de datos del cliente",
-    },
-    "E_quejas_internas.docx": {
-        "process_id": "E",
-        "process_name": "Gestión de quejas internas",
-    },
-}
 
 # Parámetros expuestos para cumplir el requisito del RAG.
 
@@ -151,46 +125,49 @@ def reiniciar_coleccion(cliente: Any):
 
 def preparar_chunks() -> list[dict[str, Any]]:
     """
-    Lee los documentos configurados y genera chunks con metadata.
+    Lee los documentos configurados en el catálogo de procesos y genera chunks.
 
-    Cada chunk conserva el código de proceso para que la búsqueda RAG pueda filtrarse por agente especializado.
+    El catálogo centraliza la relación:
+    proceso -> agente especializado -> documento RAG.
     """
     registros = []
 
-    for nombre_archivo, datos in CATALOGO_DOCUMENTOS.items():
-        ruta_documento = CARPETA_DOCUMENTOS / nombre_archivo
+    for proceso in listar_catalogo():
+        ruta_documento = CARPETA_DOCUMENTOS / proceso.documento_rag
 
         if not ruta_documento.exists():
-            raise FileNotFoundError(f"No existe el documento requerido: {ruta_documento}")
+            raise FileNotFoundError(
+                f"No existe el documento requerido para el proceso "
+                f"{proceso.proceso_id}: {ruta_documento}"
+            )
 
         texto = leer_docx(ruta_documento)
         chunks = dividir_en_chunks(texto, CHUNK_SIZE, CHUNK_OVERLAP)
 
         logger.info(
             "Documento procesado | archivo=%s | proceso=%s | chunks=%s",
-            nombre_archivo,
-            datos["process_id"],
+            proceso.documento_rag,
+            proceso.proceso_id,
             len(chunks),
         )
 
         for indice, chunk in enumerate(chunks, start=1):
-            chunk_id = f"{datos['process_id']}_{indice:03d}"
+            chunk_id = f"{proceso.proceso_id}_{indice:03d}"
 
             registros.append(
                 {
                     "id": chunk_id,
                     "texto": chunk,
                     "metadata": {
-                        "process_id": datos["process_id"],
-                        "process_name": datos["process_name"],
-                        "source_file": nombre_archivo,
+                        "process_id": proceso.proceso_id,
+                        "process_name": proceso.nombre,
+                        "source_file": proceso.documento_rag,
                         "chunk_index": indice,
                     },
                 }
             )
 
     return registros
-
 
 def ejecutar_ingesta() -> None:
     """
