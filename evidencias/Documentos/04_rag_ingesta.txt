@@ -1,26 +1,275 @@
-﻿**********************
-Inicio de la transcripción de Windows PowerShell
-Hora de inicio: 20260507140836
-Nombre de usuario: LAPTOP-D7SGHFMT\joshu
-Usuario RunAs: LAPTOP-D7SGHFMT\joshu
-Nombre de la configuración: 
-Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
-Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-Id. de proceso: 2564
-PSVersion: 5.1.26100.8115
-PSEdition: Desktop
-PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
-BuildVersion: 10.0.26100.8115
-CLRVersion: 4.0.30319.42000
-WSManStackVersion: 3.0
-PSRemotingProtocolVersion: 2.3
-SerializationVersion: 1.1.0.1
-**********************
-La transcripción ha comenzado. El archivo de salida es evidencias\04_rag_ingesta.txt
+﻿ Evidencia de RAG, chunks y vector store
 
+============================================================
+COMANDO: Ejecutar ingesta RAG
+PS> docker compose --ansi never run --rm app python -m app.rag.ingesta
+============================================================
+ 
+2026-05-07 21:23:43 | INFO | __main__ | Iniciando pipeline de ingesta RAG.
+2026-05-07 21:23:43 | INFO | __main__ | Documento procesado | archivo=A_aclaraciones_bancarias.docx | proceso=A | chunks=6
+2026-05-07 21:23:43 | INFO | __main__ | Documento procesado | archivo=B_cancelacion_productos.docx | proceso=B | chunks=5
+2026-05-07 21:23:43 | INFO | __main__ | Documento procesado | archivo=C_escalamiento_incidencias.docx | proceso=C | chunks=4
+2026-05-07 21:23:43 | INFO | __main__ | Documento procesado | archivo=D_actualizacion_datos_cliente.docx | proceso=D | chunks=4
+2026-05-07 21:23:43 | INFO | __main__ | Documento procesado | archivo=E_quejas_internas.docx | proceso=E | chunks=4
+2026-05-07 21:23:43 | INFO | __main__ | Cargando modelo de embeddings: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:23:43 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:23:43 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00,  1.15it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00,  1.15it/s]
+2026-05-07 21:24:05 | INFO | __main__ | Colección Chroma eliminada para reconstrucción: bank_processes
+2026-05-07 21:24:05 | INFO | __main__ | Ingesta RAG completada | vector_store=ChromaDB | coleccion=bank_processes | chunks=23
+                             Resumen de ingesta RAG                             
+┏━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Parámetro              ┃ Valor                                               ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Vector store           │ ChromaDB                                            │
+│ Colección              │ bank_processes                                      │
+│ Estrategia de búsqueda │ similarity                                          │
+│ Chunk size             │ 1200                                                │
+│ Chunk overlap          │ 1                                                   │
+│ Top K                  │ 3                                                   │
+│ Modelo embeddings      │ sentence-transformers/paraphrase-multilingual-Mini… │
+│ Dimensión embeddings   │ 384                                                 │
+│ Chunks almacenados     │ 23                                                  │
+│ Ruta Chroma            │ data/chroma                                         │
+└────────────────────────┴─────────────────────────────────────────────────────┘
+Pipeline de ingesta RAG completado correctamente.
 
-**********************
-Fin de la transcripción de Windows PowerShell
-Hora de finalización: 20260507140957
-**********************
+============================================================
+COMANDO: Probar RAG proceso A
+PS> docker compose --ansi never run --rm app python -m app.principal probar-rag A "Cuando debe escalarse una aclaracion bancaria?"
+============================================================
+ 
+2026-05-07 21:24:13 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:24:13 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:24:34 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=A | top_k=3 | estrategia=similarity
+
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 60.62it/s]
+Chunks recuperados:
+╭─────────────── Proceso A - Atención de aclaraciones bancarias ───────────────╮
+│ Chunk: A_002                                                                 │
+│ Documento: A_aclaraciones_bancarias.docx                                     │
+│ Índice: 2                                                                    │
+│ Distancia: 0.4539492812309812                                                │
+│                                                                              │
+│ Caracteres texto completo: 1130                                              │
+│ Caracteres preview: 900                                                      │
+│                                                                              │
+│ 2. Objetivo El objetivo del proceso es asegurar que toda aclaración bancaria │
+│ sea atendida de forma ordenada, trazable y respaldada por evidencia          │
+│ operativa. La revisión debe realizarse con base en información disponible en │
+│ sistemas autorizados de BANCOMEX, evitando conclusiones sin soporte          │
+│ documental. El proceso busca proteger la integridad de la información        │
+│ operativa, mantener seguimiento oportuno de cada caso y comunicar una        │
+│ respuesta clara sobre la procedencia o no procedencia de la aclaración. 3.   │
+│ Alcance Este procedimiento aplica cuando un cliente solicita revisión sobre  │
+│ una operación que considera incorrecta, desconocida, incompleta o no         │
+│ aplicada. También aplica cuando un área interna detecta una posible          │
+│ inconsistencia relacionada con cargos, abonos, comisiones o conciliaciones.  │
+│ No corresponde a este proceso atender cancelaciones de productos,            │
+│ actualización de datos del cliente, quej                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─────────────── Proceso A - Atención de aclaraciones bancarias ───────────────╮
+│ Chunk: A_006                                                                 │
+│ Documento: A_aclaraciones_bancarias.docx                                     │
+│ Índice: 6                                                                    │
+│ Distancia: 0.5429365614352186                                                │
+│                                                                              │
+│ Caracteres texto completo: 784                                               │
+│ Caracteres preview: 783                                                      │
+│                                                                              │
+│ 7. Escalamiento y cierre Una aclaración debe escalarse cuando involucra      │
+│ posible fraude, montos altos, inconsistencias entre sistemas, afectación a   │
+│ varios clientes o falta de evidencia suficiente para resolver en primer      │
+│ nivel. El escalamiento debe incluir motivo, evidencia revisada, sistemas     │
+│ consultados y área destino. No debe prometerse una resolución antes de       │
+│ recibir confirmación del área responsable de atender el escalamiento. El     │
+│ cierre puede clasificarse como procedente, no procedente, pendiente de       │
+│ información o escalado. En todos los casos debe quedar evidencia del         │
+│ análisis realizado, estado final, motivo de la decisión y acción correctiva  │
+│ cuando aplique. La respuesta final debe ser clara, verificable y limitada a  │
+│ la información confirmada durante la revisión del caso.                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─────────────── Proceso A - Atención de aclaraciones bancarias ───────────────╮
+│ Chunk: A_001                                                                 │
+│ Documento: A_aclaraciones_bancarias.docx                                     │
+│ Índice: 1                                                                    │
+│ Distancia: 0.5922757931615124                                                │
+│                                                                              │
+│ Caracteres texto completo: 834                                               │
+│ Caracteres preview: 827                                                      │
+│                                                                              │
+│ Atención de aclaraciones bancarias Código de proceso: A Nombre del proceso:  │
+│ Atención de aclaraciones bancarias Institución: BANCOMEX Tipo de documento:  │
+│ Procedimiento operativo interno 1. Identificación del proceso Código de      │
+│ proceso: A Nombre del proceso: Atención de aclaraciones bancarias            │
+│ Institución: BANCOMEX Tipo de documento: Procedimiento operativo interno El  │
+│ proceso de atención de aclaraciones bancarias forma parte de los             │
+│ procedimientos internos de BANCOMEX para revisar inconformidades             │
+│ relacionadas con operaciones registradas en productos financieros del        │
+│ cliente. Este procedimiento permite registrar, analizar y resolver           │
+│ solicitudes donde exista duda sobre cargos, abonos, comisiones, pagos        │
+│ aplicados, transferencias, retiros, depósitos u otros movimientos reflejados │
+│ en los sistemas internos del banco. 2. Objetivo                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Trazabilidad RAG:
+{
+  "type": "rag",
+  "details": {
+    "vector_store": "ChromaDB",
+    "collection": "bank_processes",
+    "search_strategy": "similarity",
+    "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "embedding_dimension": 384,
+    "chunk_size": 1200,
+    "chunk_overlap": 1,
+    "top_k": 3,
+    "process_id": "A",
+    "chunks_found": 3,
+    "sources": [
+      {
+        "chunk_id": "A_002",
+        "source_file": "A_aclaraciones_bancarias.docx",
+        "chunk_index": 2,
+        "distance": 0.4539492812309812,
+        "text_preview": "2. Objetivo El objetivo del proceso es asegurar que toda aclaración bancaria sea atendida de forma ordenada, trazable y respaldada por evidencia operativa. La revisión debe realizarse con base en información disponible en sistemas autorizados de BANCOMEX, evitando conclusiones sin soporte documental. El proceso busca proteger la integridad de la información operativa, mantener seguimiento oportuno de cada caso y comunicar una respuesta clara sobre la procedencia o no procedencia de la aclaración. 3. Alcance Este procedimiento aplica cuando un cliente solicita revisión sobre una operación que considera incorrecta, desconocida, incompleta o no aplicada. También aplica cuando un área interna detecta una posible inconsistencia relacionada con cargos, abonos, comisiones o conciliaciones. No corresponde a este proceso atender cancelaciones de productos, actualización de datos del cliente, quej"
+      },
+      {
+        "chunk_id": "A_006",
+        "source_file": "A_aclaraciones_bancarias.docx",
+        "chunk_index": 6,
+        "distance": 0.5429365614352186,
+        "text_preview": "7. Escalamiento y cierre Una aclaración debe escalarse cuando involucra posible fraude, montos altos, inconsistencias entre sistemas, afectación a varios clientes o falta de evidencia suficiente para resolver en primer nivel. El escalamiento debe incluir motivo, evidencia revisada, sistemas consultados y área destino. No debe prometerse una resolución antes de recibir confirmación del área responsable de atender el escalamiento. El cierre puede clasificarse como procedente, no procedente, pendiente de información o escalado. En todos los casos debe quedar evidencia del análisis realizado, estado final, motivo de la decisión y acción correctiva cuando aplique. La respuesta final debe ser clara, verificable y limitada a la información confirmada durante la revisión del caso."
+      },
+      {
+        "chunk_id": "A_001",
+        "source_file": "A_aclaraciones_bancarias.docx",
+        "chunk_index": 1,
+        "distance": 0.5922757931615124,
+        "text_preview": "Atención de aclaraciones bancarias Código de proceso: A Nombre del proceso: Atención de aclaraciones bancarias Institución: BANCOMEX Tipo de documento: Procedimiento operativo interno 1. Identificación del proceso Código de proceso: A Nombre del proceso: Atención de aclaraciones bancarias Institución: BANCOMEX Tipo de documento: Procedimiento operativo interno El proceso de atención de aclaraciones bancarias forma parte de los procedimientos internos de BANCOMEX para revisar inconformidades relacionadas con operaciones registradas en productos financieros del cliente. Este procedimiento permite registrar, analizar y resolver solicitudes donde exista duda sobre cargos, abonos, comisiones, pagos aplicados, transferencias, retiros, depósitos u otros movimientos reflejados en los sistemas internos del banco. 2. Objetivo"
+      }
+    ]
+  }
+}
+
+============================================================
+COMANDO: Probar RAG proceso E
+PS> docker compose --ansi never run --rm app python -m app.principal probar-rag E "Que necesito para levantar una queja?"
+============================================================
+ 
+2026-05-07 21:24:42 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:24:42 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:25:05 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=E | top_k=3 | estrategia=similarity
+
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 34.12it/s]
+Chunks recuperados:
+╭─────────────────── Proceso E - Gestión de quejas internas ───────────────────╮
+│ Chunk: E_004                                                                 │
+│ Documento: E_quejas_internas.docx                                            │
+│ Índice: 4                                                                    │
+│ Distancia: 0.5095994516259355                                                │
+│                                                                              │
+│ Caracteres texto completo: 638                                               │
+│ Caracteres preview: 637                                                      │
+│                                                                              │
+│ 7. Escalamiento y cierre La queja debe escalarse cuando exista posible       │
+│ incumplimiento normativo, afectación a clientes, reincidencia, conflicto     │
+│ entre áreas, falta de respuesta del responsable asignado o posible           │
+│ desviación de controles internos. El escalamiento debe quedar documentado    │
+│ con motivo, evidencia y área destino. El cierre debe incluir conclusión,     │
+│ acciones correctivas si aplican, responsable de seguimiento y fecha de       │
+│ resolución. No deben afirmarse sanciones, responsables o decisiones sin      │
+│ soporte documental. Si la información no permite concluir el caso, debe      │
+│ permanecer en seguimiento hasta contar con evidencia suficiente.             │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────── Proceso E - Gestión de quejas internas ───────────────────╮
+│ Chunk: E_002                                                                 │
+│ Documento: E_quejas_internas.docx                                            │
+│ Índice: 2                                                                    │
+│ Distancia: 0.6675806120115781                                                │
+│                                                                              │
+│ Caracteres texto completo: 925                                               │
+│ Caracteres preview: 900                                                      │
+│                                                                              │
+│ 3. Alcance Este procedimiento aplica cuando un colaborador, área interna o   │
+│ canal autorizado reporta una inconformidad sobre atención recibida,          │
+│ incumplimiento de procedimientos, demoras injustificadas, trato inadecuado,  │
+│ falta de seguimiento o posibles desviaciones operativas. No reemplaza los    │
+│ procesos de aclaraciones, cancelación de productos, actualización de datos o │
+│ incidencias técnicas, aunque puede recibir casos derivados cuando exista una │
+│ inconformidad formal sobre la gestión. 4. Entradas requeridas Para registrar │
+│ una queja interna se requiere descripción del caso, área involucrada, fecha, │
+│ canal de origen, evidencia disponible, impacto observado y datos del         │
+│ responsable que reporta. Cuando la información es insuficiente, se solicita  │
+│ complemento antes de iniciar análisis. Si la queja se relaciona con un       │
+│ proceso operativo específico, debe incluirse el folio o referencia del caso  │
+│ asociad                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────── Proceso E - Gestión de quejas internas ───────────────────╮
+│ Chunk: E_003                                                                 │
+│ Documento: E_quejas_internas.docx                                            │
+│ Índice: 3                                                                    │
+│ Distancia: 0.6825981765734412                                                │
+│                                                                              │
+│ Caracteres texto completo: 1060                                              │
+│ Caracteres preview: 900                                                      │
+│                                                                              │
+│ 5. Flujo operativo La queja se registra en el sistema interno                │
+│ correspondiente. La instancia encargada revisa la información inicial,       │
+│ valida que no exista duplicidad y asigna un responsable de análisis. Según   │
+│ la naturaleza del caso, puede requerirse revisión de expedientes, tiempos de │
+│ atención, comunicaciones internas, cumplimiento de procedimiento o           │
+│ participación de otra área. Durante el análisis se documentan hallazgos,     │
+│ evidencias revisadas y acciones solicitadas. Si se requiere respuesta de     │
+│ otra área, se establece un plazo de atención y se da seguimiento hasta       │
+│ recibir información suficiente. La queja no debe cerrarse sin conclusión     │
+│ documentada. 6. Validaciones obligatorias Antes de cerrar una queja, debe    │
+│ validarse que el caso esté completo, que la evidencia haya sido revisada,    │
+│ que el área involucrada haya tenido oportunidad de responder y que la        │
+│ conclusión esté respaldada por informaci                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Trazabilidad RAG:
+{
+  "type": "rag",
+  "details": {
+    "vector_store": "ChromaDB",
+    "collection": "bank_processes",
+    "search_strategy": "similarity",
+    "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "embedding_dimension": 384,
+    "chunk_size": 1200,
+    "chunk_overlap": 1,
+    "top_k": 3,
+    "process_id": "E",
+    "chunks_found": 3,
+    "sources": [
+      {
+        "chunk_id": "E_004",
+        "source_file": "E_quejas_internas.docx",
+        "chunk_index": 4,
+        "distance": 0.5095994516259355,
+        "text_preview": "7. Escalamiento y cierre La queja debe escalarse cuando exista posible incumplimiento normativo, afectación a clientes, reincidencia, conflicto entre áreas, falta de respuesta del responsable asignado o posible desviación de controles internos. El escalamiento debe quedar documentado con motivo, evidencia y área destino. El cierre debe incluir conclusión, acciones correctivas si aplican, responsable de seguimiento y fecha de resolución. No deben afirmarse sanciones, responsables o decisiones sin soporte documental. Si la información no permite concluir el caso, debe permanecer en seguimiento hasta contar con evidencia suficiente."
+      },
+      {
+        "chunk_id": "E_002",
+        "source_file": "E_quejas_internas.docx",
+        "chunk_index": 2,
+        "distance": 0.6675806120115781,
+        "text_preview": "3. Alcance Este procedimiento aplica cuando un colaborador, área interna o canal autorizado reporta una inconformidad sobre atención recibida, incumplimiento de procedimientos, demoras injustificadas, trato inadecuado, falta de seguimiento o posibles desviaciones operativas. No reemplaza los procesos de aclaraciones, cancelación de productos, actualización de datos o incidencias técnicas, aunque puede recibir casos derivados cuando exista una inconformidad formal sobre la gestión. 4. Entradas requeridas Para registrar una queja interna se requiere descripción del caso, área involucrada, fecha, canal de origen, evidencia disponible, impacto observado y datos del responsable que reporta. Cuando la información es insuficiente, se solicita complemento antes de iniciar análisis. Si la queja se relaciona con un proceso operativo específico, debe incluirse el folio o referencia del caso asociad"
+      },
+      {
+        "chunk_id": "E_003",
+        "source_file": "E_quejas_internas.docx",
+        "chunk_index": 3,
+        "distance": 0.6825981765734412,
+        "text_preview": "5. Flujo operativo La queja se registra en el sistema interno correspondiente. La instancia encargada revisa la información inicial, valida que no exista duplicidad y asigna un responsable de análisis. Según la naturaleza del caso, puede requerirse revisión de expedientes, tiempos de atención, comunicaciones internas, cumplimiento de procedimiento o participación de otra área. Durante el análisis se documentan hallazgos, evidencias revisadas y acciones solicitadas. Si se requiere respuesta de otra área, se establece un plazo de atención y se da seguimiento hasta recibir información suficiente. La queja no debe cerrarse sin conclusión documentada. 6. Validaciones obligatorias Antes de cerrar una queja, debe validarse que el caso esté completo, que la evidencia haya sido revisada, que el área involucrada haya tenido oportunidad de responder y que la conclusión esté respaldada por informaci"
+      }
+    ]
+  }
+}

@@ -280,8 +280,9 @@ Reglas:
 - Si el usuario pide capacidades generales, usa "orientacion".
 - Si no puedes decidir con seguridad, usa "sin_proceso".
 - Si la pregunta es sobre ingresos, ventas, utilidades, estados financieros, acciones, precios, nómina o información corporativa, usa "sin_proceso" con tipo_sin_proceso "fuera_alcance".
-- Si el usuario compara dos o más procesos posibles, por ejemplo "queja o aclaración", "incidencia o queja", "cancelación o aclaración", y no hay información suficiente para elegir uno, usa "sin_proceso" con tipo_sin_proceso "falta_contexto".
-- No elijas un solo proceso cuando la intención principal del usuario sea comparar opciones entre procesos.
+- Si el usuario compara opciones para decidir cuál proceso corresponde, por ejemplo "queja o aclaración", "qué me conviene más", "cuál debo levantar", "qué proceso aplica", y no hay información suficiente para elegir uno, usa "sin_proceso" con tipo_sin_proceso "falta_contexto".
+- No trates como comparación una pregunta donde el usuario pide información de dos procesos distintos de forma acumulativa, por ejemplo "quiero saber cómo hacer una queja y cómo cancelar un producto".
+- Si el usuario pide dos procesos distintos en la misma pregunta y no está comparando cuál conviene, selecciona el proceso más explícito o el primero mencionado, y explica que puede consultar el segundo proceso en una siguiente pregunta.
 - No inventes procesos fuera de A, B, C, D o E.
 
 Estado de memoria conversacional:

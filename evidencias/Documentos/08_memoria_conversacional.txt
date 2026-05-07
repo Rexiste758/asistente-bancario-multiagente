@@ -1,25 +1,154 @@
-﻿**********************
-Inicio de la transcripción de Windows PowerShell
-Hora de inicio: 20260507141622
-Nombre de usuario: LAPTOP-D7SGHFMT\joshu
-Usuario RunAs: LAPTOP-D7SGHFMT\joshu
-Nombre de la configuración: 
-Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
-Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-Id. de proceso: 2564
-PSVersion: 5.1.26100.8115
-PSEdition: Desktop
-PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
-BuildVersion: 10.0.26100.8115
-CLRVersion: 4.0.30319.42000
-WSManStackVersion: 3.0
-PSRemotingProtocolVersion: 2.3
-SerializationVersion: 1.1.0.1
-**********************
-La transcripción ha comenzado. El archivo de salida es evidencias\08_memoria_conversacional.txt
+﻿ Evidencia de memoria conversacional real
 
-PS C:\Users\joshu\Documents\asistente-bancario-multiagente> Stop-Transcript
-**********************
-Fin de la transcripción de Windows PowerShell
-Hora de finalización: 20260507141955
-**********************
+============================================================
+COMANDO: Memoria conversacional con flujo real del orquestador
+DESCRIPCION: Se ejecutan varios turnos con el mismo conversation_id dentro del mismo proceso Python.
+============================================================
+
+======================================================================
+TURNO 1
+Usuario: Explicame el proceso de aclaraciones por cargos no reconocidos
+======================================================================
+2026-05-07 23:31:25 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:31:25 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:31:27 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:31:27 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:31:28 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteAclaraciones | proceso=A | tools=['RAGTool'] | bd=ninguna
+[0;93m2026-05-07 23:31:29.263799301 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card0": device_discovery.cc:93 ReadFileContents Failed to open file: 
+"/sys/class/drm/card0/device/vendor"[m
+2026-05-07 23:31:35 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 23:31:35 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 23:31:55 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=A | top_k=3 | estrategia=similarity
+
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 12.66it/s]
+2026-05-07 23:31:55 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:31:56 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:04 | INFO | app.agentes.orquestador | Orquestador completó respuesta | conversation_id=evidencia-memoria-001 | proceso=A | agente=AgenteAclaraciones | tools=['RAGTool']
+
+Respuesta del asistente:
+De acuerdo con la información disponible en el proceso de aclaraciones bancarias, te explico el proceso para atender aclaraciones por **cargos no reconocidos**:
+
+**1. Registro y clasificación de la solicitud**
+El proceso inicia cuando el cliente presenta su inconformidad a través de un canal autorizado. Para que el caso pueda ser analizado, se requiere contar con la siguiente información mínima:
+- Identificador del cliente.
+- Producto relacionado (tarjeta, cuenta, etc.).
+- Fecha aproximada de la operación.
+- Monto del cargo.
+- Canal donde se realizó el movimiento.
+- Descripción clara de por qué no se reconoce el cargo.
+
+Si falta alguno de estos datos, el caso queda **pendiente de complemento** hasta que el cliente proporcione la información faltante.
+
+**2. Análisis operativo**
+El analista clasifica el tipo de aclaración (cargo no reconocido) y verifica que no exista una solicitud duplicada sobre la misma operación. Posteriormente, consulta los sistemas internos para validar:
+- Si el movimiento existe en los registros.
+- Si fue aplicado correctamente.
+- Si existen reversos, comisiones asociadas, operaciones duplicadas o registros pendientes de conciliación.
+
+**3. Determinación del resultado**
+- **Si la evidencia confirma que el cargo fue aplicado correctamente**, el caso se documenta como **no procedente** y se comunica al cliente la explicación correspondiente.
+- **Si se detecta una inconsistencia operativa** (por ejemplo, un error en el sistema, un cobro duplicado o un movimiento no autorizado), el analista registra la causa, solicita la corrección al área correspondiente y da seguimiento hasta confirmar el ajuste o la resolución del movimiento.
+
+**4. Escalamiento (si aplica)**
+Una aclaración debe escalarse cuando involucra:
+- Posible fraude.
+- Montos altos.
+- Inconsistencias entre sistemas.
+- Afectación a varios clientes.
+- Falta de evidencia suficiente para resolver en primer nivel.
+
+El escalamiento debe incluir el motivo, la evidencia revisada, los sistemas consultados y el área destino. No debe prometerse una resolución antes de recibir confirmación del área responsable.
+
+**5. Cierre del caso**
+El cierre puede clasificarse como:
+- **Procedente** (se reconoce el error y se corrige).
+- **No procedente** (el cargo es válido).
+- **Pendiente de información** (faltan datos del cliente).
+- **Escalado** (se deriva a otra área).
+
+En todos los casos debe quedar evidencia del análisis realizado, el estado final, el motivo de la decisión y la acción correctiva cuando aplique. La respuesta final al cliente debe ser clara, verificable y limitada a la información confirmada durante la revisión.
+
+**Importante:** Si los datos proporcionados por el cliente son insuficientes para ubicar la operación, el caso no debe cerrarse sin contar con los elementos mínimos para revisar el movimiento cuestionado.
+
+Resumen:
+{
+  "conversation_id": "evidencia-memoria-001",
+  "process_id": "A",
+  "process_name": "Atención de aclaraciones bancarias",
+  "agent_used": "AgenteAclaraciones",
+  "tools_used": [
+    "RAGTool"
+  ]
+}
+
+======================================================================
+TURNO 2
+Usuario: Y eso que dices cuanto dura?
+======================================================================
+2026-05-07 23:32:04 | INFO | app.agentes.orquestador | Orquestador recibió solicitud | conversation_id=evidencia-memoria-001 | user_id=usuario_cli
+2026-05-07 23:32:04 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:32:04 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:05 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:32:06 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:07 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteAclaraciones | proceso=A | tools=['DatabaseTool'] | bd=tiempo_promedio_resolucion
+2026-05-07 23:32:07 | INFO | app.herramientas.herramienta_bd | HerramientaBD ejecutando consulta | query_id=get_tiempo_resolucion_by_process | proceso_id=A | campos=['tiempo_promedio_resolucion']
+2026-05-07 23:32:07 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:32:08 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:08 | INFO | app.agentes.orquestador | Orquestador completó respuesta | conversation_id=evidencia-memoria-001 | proceso=A | agente=AgenteAclaraciones | tools=['DatabaseTool']
+
+Respuesta del asistente:
+El tiempo promedio de resolución para el proceso de aclaraciones bancarias es de **48 horas hábiles**.
+
+Resumen:
+{
+  "conversation_id": "evidencia-memoria-001",
+  "process_id": "A",
+  "process_name": "Atención de aclaraciones bancarias",
+  "agent_used": "AgenteAclaraciones",
+  "tools_used": [
+    "DatabaseTool"
+  ]
+}
+
+======================================================================
+TURNO 3
+Usuario: Por que canal se atiende?
+======================================================================
+2026-05-07 23:32:08 | INFO | app.agentes.orquestador | Orquestador recibió solicitud | conversation_id=evidencia-memoria-001 | user_id=usuario_cli
+2026-05-07 23:32:08 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:32:09 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:10 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:32:10 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:12 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteAclaraciones | proceso=A | tools=['DatabaseTool'] | bd=canal_atencion
+2026-05-07 23:32:12 | INFO | app.herramientas.herramienta_bd | HerramientaBD ejecutando consulta | query_id=get_canal_atencion_by_process | proceso_id=A | campos=['canal_atencion']
+2026-05-07 23:32:12 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 23:32:12 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 23:32:14 | INFO | app.agentes.orquestador | Orquestador completó respuesta | conversation_id=evidencia-memoria-001 | proceso=A | agente=AgenteAclaraciones | tools=['DatabaseTool']
+
+Respuesta del asistente:
+De acuerdo con la información disponible en la base de datos, el proceso de atención de aclaraciones bancarias se atiende a través de los siguientes canales:
+
+- Portal interno de aclaraciones
+- Sucursal
+- Contact center
+
+Si requiere más detalles sobre el uso de alguno de estos canales, le sugiero consultar la documentación específica del proceso.
+
+Resumen:
+{
+  "conversation_id": "evidencia-memoria-001",
+  "process_id": "A",
+  "process_name": "Atención de aclaraciones bancarias",
+  "agent_used": "AgenteAclaraciones",
+  "tools_used": [
+    "DatabaseTool"
+  ]
+}
+
+======================================================================
+VALIDACION ESPERADA
+======================================================================
+Turno 1: debe detectar proceso A y usar RAGTool.
+Turno 2: debe recordar proceso A y consultar DatabaseTool para tiempo.
+Turno 3: debe recordar proceso A y consultar DatabaseTool para canal.

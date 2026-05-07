@@ -1,25 +1,376 @@
-﻿**********************
-Inicio de la transcripción de Windows PowerShell
-Hora de inicio: 20260507141326
-Nombre de usuario: LAPTOP-D7SGHFMT\joshu
-Usuario RunAs: LAPTOP-D7SGHFMT\joshu
-Nombre de la configuración: 
-Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
-Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-Id. de proceso: 2564
-PSVersion: 5.1.26100.8115
-PSEdition: Desktop
-PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
-BuildVersion: 10.0.26100.8115
-CLRVersion: 4.0.30319.42000
-WSManStackVersion: 3.0
-PSRemotingProtocolVersion: 2.3
-SerializationVersion: 1.1.0.1
-**********************
-La transcripción ha comenzado. El archivo de salida es evidencias\07_trazabilidad.txt
+﻿ Evidencia de trazabilidad completa
 
+============================================================
+COMANDO: Trazabilidad con BD
+PS> docker compose --ansi never run --rm app python -m app.principal chat-trazabilidad "Que procesos existen registrados en la base de datos operativa?"
+============================================================
+ 
+2026-05-07 21:55:34 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:34 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:55:35 | INFO | app.herramientas.herramienta_bd | HerramientaBD listando procesos | query_id=list_procesos_operativos
+╭────────────────────────── Respuesta del asistente ───────────────────────────╮
+│ Los procesos registrados en la base de datos operativa son:                  │
+│                                                                              │
+│ - A: Atención de aclaraciones bancarias                                      │
+│ - B: Cancelación de productos financieros                                    │
+│ - C: Escalamiento de incidencias operativas                                  │
+│ - D: Actualización de datos del cliente                                      │
+│ - E: Gestión de quejas internas                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
-**********************
-Fin de la transcripción de Windows PowerShell
-Hora de finalización: 20260507141406
-**********************
+Resumen:
+{
+  "conversation_id": "demo-001",
+  "process_id": null,
+  "process_name": null,
+  "agent_used": "OrquestadorAgentes",
+  "tools_used": [
+    "DatabaseTool"
+  ]
+}
+
+Trazabilidad:
+[
+  {
+    "type": "orchestrator",
+    "details": {
+      "routing_action": "listar_procesos_bd",
+      "selected_process_id": null,
+      "reason": "El usuario pregunta explícitamente por los procesos registrados en la base de datos operativa.",
+      "confidence": "alta",
+      "out_of_scope_type": "no_aplica",
+      "memory_state": {
+        "conversation_id": "demo-001",
+        "ultimo_proceso_id": null,
+        "ultimo_proceso_nombre": null,
+        "ultima_herramienta_usada": null,
+        "mensajes_en_memoria": 1,
+        "historial": [
+          {
+            "rol": "usuario",
+            "contenido": "Que procesos existen registrados en la base de datos operativa?",
+            "timestamp": "2026-05-07T21:55:34.017243+00:00"
+          }
+        ]
+      },
+      "catalog_detection": {
+        "proceso_detectado": {
+          "proceso_id": "D",
+          "nombre": "Actualización de datos del cliente",
+          "agente": "AgenteDatosCliente",
+          "score": 2,
+          "frases_fuertes_detectadas": [],
+          "terminos_apoyo_detectados": [
+            "datos",
+            "dato"
+          ]
+        },
+        "es_claro": false,
+        "requiere_llm": true,
+        "motivo": "El catálogo encontró señales, pero no tiene confianza suficiente para decidir por sí solo.",
+        "motivo_confianza": "Hay señales, pero no son suficientemente claras. Conviene usar el clasificador LLM o pedir aclaración.",
+        "candidatos": [
+          {
+            "proceso_id": "D",
+            "nombre": "Actualización de datos del cliente",
+            "agente": "AgenteDatosCliente",
+            "score": 2,
+            "frases_fuertes_detectadas": [],
+            "terminos_apoyo_detectados": [
+              "datos",
+              "dato"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.0,
+      "max_tokens": 350,
+      "api_key": "configurada_no_expuesta",
+      "usage": "clasificador_ruta_orquestador",
+      "decision": {
+        "accion": "listar_procesos_bd",
+        "proceso_id": null,
+        "motivo": "El usuario pregunta explícitamente por los procesos registrados en la base de datos operativa.",
+        "confianza": "alta",
+        "tipo_sin_proceso": "no_aplica"
+      }
+    }
+  },
+  {
+    "type": "database",
+    "details": {
+      "query_id": "list_procesos_operativos",
+      "sql": "SELECT proceso_id, nombre_proceso FROM procesos_operativos ORDER BY proceso_id",
+      "params": [],
+      "fields": [
+        "proceso_id",
+        "nombre_proceso"
+      ],
+      "table": "procesos_operativos"
+    }
+  }
+]
+
+============================================================
+COMANDO: Trazabilidad con RAG
+PS> docker compose --ansi never run --rm app python -m app.principal chat-trazabilidad "Explicame el proceso de aclaraciones por cargos no reconocidos"
+============================================================
+ 
+2026-05-07 21:55:38 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:39 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:55:40 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:40 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:55:42 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteAclaraciones | proceso=A | tools=['RAGTool'] | bd=ninguna
+[0;93m2026-05-07 21:55:42.647521498 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card0": device_discovery.cc:93 ReadFileContents Failed to open file: 
+"/sys/class/drm/card0/device/vendor"[m
+2026-05-07 21:55:46 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:55:46 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:56:04 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=A | top_k=3 | estrategia=similarity
+
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 37.93it/s]
+2026-05-07 21:56:04 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:56:05 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:56:13 | INFO | app.agentes.orquestador | Orquestador completó respuesta | conversation_id=demo-001 | proceso=A | agente=AgenteAclaraciones | tools=['RAGTool']
+╭────────────────────────── Respuesta del asistente ───────────────────────────╮
+│ De acuerdo con la información disponible en el proceso de aclaraciones       │
+│ bancarias, te explico el proceso para atender aclaraciones por **cargos no   │
+│ reconocidos**:                                                               │
+│                                                                              │
+│ **1. Inicio del proceso:**                                                   │
+│ Para iniciar una aclaración por un cargo no reconocido, se requiere contar   │
+│ con la siguiente información mínima:                                         │
+│ - Identificador del cliente.                                                 │
+│ - Producto relacionado (tarjeta de débito, crédito, cuenta, etc.).           │
+│ - Fecha aproximada de la operación.                                          │
+│ - Monto del cargo.                                                           │
+│ - Canal donde se realizó el movimiento (por ejemplo, cajero automático,      │
+│ banca en línea, terminal punto de venta, etc.).                              │
+│ - Descripción clara de la inconformidad (por qué consideras que el cargo no  │
+│ es reconocido).                                                              │
+│                                                                              │
+│ Si esta información es insuficiente, el caso queda **pendiente de            │
+│ complemento** hasta que se reciban los datos necesarios para iniciar el      │
+│ análisis.                                                                    │
+│                                                                              │
+│ **2. Flujo operativo:**                                                      │
+│ Una vez registrada la solicitud en el canal autorizado, el analista:         │
+│ - Clasifica el tipo de aclaración (cargo no reconocido).                     │
+│ - Identifica el producto asociado.                                           │
+│ - Revisa si existe una solicitud duplicada sobre la misma operación.         │
+│ - Consulta los sistemas internos para validar:                               │
+│   - Si el movimiento existe.                                                 │
+│   - Si fue aplicado correctamente.                                           │
+│   - Si existen reversos, comisiones asociadas, operaciones duplicadas o      │
+│ registros pendientes de conciliación.                                        │
+│                                                                              │
+│ **3. Resultados posibles:**                                                  │
+│ - **Si la evidencia confirma que la operación fue aplicada correctamente:**  │
+│ El caso se documenta como **no procedente** y se comunica la explicación     │
+│ correspondiente.                                                             │
+│ - **Si se detecta una inconsistencia operativa:** El analista registra la    │
+│ causa, solicita la corrección al área correspondiente y da seguimiento hasta │
+│ confirmar el ajuste o la resolución del movimiento.                          │
+│                                                                              │
+│ **4. Escalamiento y cierre:**                                                │
+│ Una aclaración debe escalarse cuando involucra posible fraude, montos altos, │
+│ inconsistencias entre sistemas, afectación a varios clientes o falta de      │
+│ evidencia suficiente para resolver en primer nivel. El cierre puede          │
+│ clasificarse como:                                                           │
+│ - **Procedente** (se confirma el error y se corrige).                        │
+│ - **No procedente** (el cargo es válido).                                    │
+│ - **Pendiente de información** (faltan datos).                               │
+│ - **Escalado** (se deriva a otra área).                                      │
+│                                                                              │
+│ En todos los casos debe quedar evidencia del análisis realizado, estado      │
+│ final, motivo de la decisión y acción correctiva cuando aplique. La          │
+│ respuesta final debe ser clara, verificable y limitada a la información      │
+│ confirmada durante la revisión del caso.                                     │
+│                                                                              │
+│ **Importante:** No se debe prometer una resolución antes de recibir          │
+│ confirmación del área responsable de atender el escalamiento.                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resumen:
+{
+  "conversation_id": "demo-001",
+  "process_id": "A",
+  "process_name": "Atención de aclaraciones bancarias",
+  "agent_used": "AgenteAclaraciones",
+  "tools_used": [
+    "RAGTool"
+  ]
+}
+
+Trazabilidad:
+[
+  {
+    "type": "orchestrator",
+    "details": {
+      "routing_action": "usar_proceso",
+      "selected_process_id": "A",
+      "reason": "El usuario solicita explícitamente el proceso de aclaraciones por cargos no reconocidos, que corresponde al proceso A.",
+      "confidence": "alta",
+      "out_of_scope_type": "no_aplica",
+      "memory_state": {
+        "conversation_id": "demo-001",
+        "ultimo_proceso_id": null,
+        "ultimo_proceso_nombre": null,
+        "ultima_herramienta_usada": null,
+        "mensajes_en_memoria": 1,
+        "historial": [
+          {
+            "rol": "usuario",
+            "contenido": "Explicame el proceso de aclaraciones por cargos no reconocidos",
+            "timestamp": "2026-05-07T21:55:38.623903+00:00"
+          }
+        ]
+      },
+      "catalog_detection": {
+        "proceso_detectado": {
+          "proceso_id": "A",
+          "nombre": "Atención de aclaraciones bancarias",
+          "agente": "AgenteAclaraciones",
+          "score": 24,
+          "frases_fuertes_detectadas": [
+            "proceso de aclaraciones",
+            "aclaraciones por cargos",
+            "aclaraciones por cargos no reconocidos",
+            "cargos no reconocidos"
+          ],
+          "terminos_apoyo_detectados": [
+            "aclaracion",
+            "aclaraciones",
+            "cargo",
+            "cargos"
+          ]
+        },
+        "es_claro": true,
+        "requiere_llm": false,
+        "motivo": "Proceso detectado con confianza suficiente usando catálogo.",
+        "motivo_confianza": "Se detectó una frase fuerte de intención y el proceso ganador supera claramente a otros candidatos.",
+        "candidatos": [
+          {
+            "proceso_id": "A",
+            "nombre": "Atención de aclaraciones bancarias",
+            "agente": "AgenteAclaraciones",
+            "score": 24,
+            "frases_fuertes_detectadas": [
+              "proceso de aclaraciones",
+              "aclaraciones por cargos",
+              "aclaraciones por cargos no reconocidos",
+              "cargos no reconocidos"
+            ],
+            "terminos_apoyo_detectados": [
+              "aclaracion",
+              "aclaraciones",
+              "cargo",
+              "cargos"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.0,
+      "max_tokens": 350,
+      "api_key": "configurada_no_expuesta",
+      "usage": "clasificador_ruta_orquestador",
+      "decision": {
+        "accion": "usar_proceso",
+        "proceso_id": "A",
+        "motivo": "El usuario solicita explícitamente el proceso de aclaraciones por cargos no reconocidos, que corresponde al proceso A.",
+        "confianza": "alta",
+        "tipo_sin_proceso": "no_aplica"
+      }
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.0,
+      "max_tokens": 300,
+      "api_key": "configurada_no_expuesta",
+      "usage": "clasificador_herramientas",
+      "decision": {
+        "tools": [
+          "RAGTool"
+        ],
+        "tipo_consulta_bd": "ninguna",
+        "motivo": "El usuario solicita una explicación del proceso, lo cual debe recuperarse desde documentos RAG.",
+        "confianza": "alta"
+      }
+    }
+  },
+  {
+    "type": "rag",
+    "details": {
+      "vector_store": "ChromaDB",
+      "collection": "bank_processes",
+      "search_strategy": "similarity",
+      "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "embedding_dimension": 384,
+      "chunk_size": 1200,
+      "chunk_overlap": 1,
+      "top_k": 3,
+      "process_id": "A",
+      "chunks_found": 3,
+      "sources": [
+        {
+          "chunk_id": "A_006",
+          "source_file": "A_aclaraciones_bancarias.docx",
+          "chunk_index": 6,
+          "distance": 0.49596050664258295,
+          "text_preview": "7. Escalamiento y cierre Una aclaración debe escalarse cuando involucra posible fraude, montos altos, inconsistencias entre sistemas, afectación a varios clientes o falta de evidencia suficiente para resolver en primer nivel. El escalamiento debe incluir motivo, evidencia revisada, sistemas consultados y área destino. No debe prometerse una resolución antes de recibir confirmación del área responsable de atender el escalamiento. El cierre puede clasificarse como procedente, no procedente, pendiente de información o escalado. En todos los casos debe quedar evidencia del análisis realizado, estado final, motivo de la decisión y acción correctiva cuando aplique. La respuesta final debe ser clara, verificable y limitada a la información confirmada durante la revisión del caso."
+        },
+        {
+          "chunk_id": "A_003",
+          "source_file": "A_aclaraciones_bancarias.docx",
+          "chunk_index": 3,
+          "distance": 0.4993931619995401,
+          "text_preview": "4. Entradas requeridas Para iniciar una aclaración se requiere contar con el identificador del cliente, producto relacionado, fecha aproximada de la operación, monto, canal donde se realizó el movimiento y descripción clara de la inconformidad. La información debe permitir ubicar la operación en los sistemas internos. Cuando los datos recibidos sean insuficientes, el caso debe quedar pendiente de complemento antes de iniciar el análisis operativo. Ninguna aclaración debe cerrarse sin contar con elementos mínimos para revisar el movimiento cuestionado. 5. Flujo operativo"
+        },
+        {
+          "chunk_id": "A_004",
+          "source_file": "A_aclaraciones_bancarias.docx",
+          "chunk_index": 4,
+          "distance": 0.513884300535514,
+          "text_preview": "5. Flujo operativo El proceso inicia con el registro de la solicitud en el canal autorizado. El analista responsable clasifica el tipo de aclaración, identifica el producto asociado y revisa si existe una solicitud duplicada sobre la misma operación. Posteriormente consulta los sistemas internos para validar si el movimiento existe, si fue aplicado correctamente, si existen reversos, comisiones asociadas, operaciones duplicadas o registros pendientes de conciliación. Si la evidencia confirma que la operación fue aplicada correctamente, el caso se documenta como no procedente y se comunica la explicación correspondiente. Si se detecta una inconsistencia operativa, el analista registra la causa, solicita la corrección al área que corresponda y da seguimiento hasta confirmar el ajuste o la resolución del movimiento. 6. Validaciones obligatorias"
+        }
+      ]
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.1,
+      "max_tokens": 700,
+      "api_key": "configurada_no_expuesta",
+      "usage": "respuesta_final"
+    }
+  }
+]

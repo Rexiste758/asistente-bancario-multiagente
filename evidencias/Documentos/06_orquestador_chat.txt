@@ -1,27 +1,106 @@
-﻿**********************
-Inicio de la transcripción de Windows PowerShell
-Hora de inicio: 20260507141228
-Nombre de usuario: LAPTOP-D7SGHFMT\joshu
-Usuario RunAs: LAPTOP-D7SGHFMT\joshu
-Nombre de la configuración: 
-Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
-Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-Id. de proceso: 2564
-PSVersion: 5.1.26100.8115
-PSEdition: Desktop
-PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
-BuildVersion: 10.0.26100.8115
-CLRVersion: 4.0.30319.42000
-WSManStackVersion: 3.0
-PSRemotingProtocolVersion: 2.3
-SerializationVersion: 1.1.0.1
-**********************
-La transcripción ha comenzado. El archivo de salida es evidencias\06_orquestador_chat.txt
+﻿ Evidencia de orquestador y chat limpio
 
+============================================================
+COMANDO: Orientacion general
+PS> docker compose --ansi never run --rm app python -m app.principal chat "Que puedes hacer?"
+============================================================
 
+ 
+2026-05-07 21:55:15 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:16 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+╭────────────────────────── Respuesta del asistente ───────────────────────────╮
+│ Puedo ayudarte con procesos operativos internos de BANCOMEX. Puedo explicar  │
+│ procedimientos documentados, consultar datos estructurados como área         │
+│ responsable, tiempo promedio de resolución, canal de atención o nivel de     │
+│ criticidad, y conservar contexto dentro de esta conversación.                │
+│                                                                              │
+│ Procesos disponibles:                                                        │
+│ - A: Atención de aclaraciones bancarias                                      │
+│ - B: Cancelación de productos financieros                                    │
+│ - C: Escalamiento de incidencias operativas                                  │
+│ - D: Actualización de datos del cliente                                      │
+│ - E: Gestión de quejas internas                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
+Resumen:
+{
+  "conversation_id": "demo-001",
+  "process_id": null,
+  "process_name": null,
+  "agent_used": "OrquestadorAgentes",
+  "tools_used": []
+}
 
-**********************
-Fin de la transcripción de Windows PowerShell
-Hora de finalización: 20260507141247
-**********************
+============================================================
+COMANDO: Procesos registrados en BD
+PS> docker compose --ansi never run --rm app python -m app.principal chat "Que procesos existen registrados en la base de datos operativa?"
+============================================================
+ 
+2026-05-07 21:55:20 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:20 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:55:21 | INFO | app.herramientas.herramienta_bd | HerramientaBD listando procesos | query_id=list_procesos_operativos
+╭────────────────────────── Respuesta del asistente ───────────────────────────╮
+│ Los procesos registrados en la base de datos operativa son:                  │
+│                                                                              │
+│ - A: Atención de aclaraciones bancarias                                      │
+│ - B: Cancelación de productos financieros                                    │
+│ - C: Escalamiento de incidencias operativas                                  │
+│ - D: Actualización de datos del cliente                                      │
+│ - E: Gestión de quejas internas                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resumen:
+{
+  "conversation_id": "demo-001",
+  "process_id": null,
+  "process_name": null,
+  "agent_used": "OrquestadorAgentes",
+  "tools_used": [
+    "DatabaseTool"
+  ]
+}
+
+============================================================
+COMANDO: Comparacion ambigua entre procesos
+PS> docker compose --ansi never run --rm app python -m app.principal chat "Que me conviene mas una queja o una aclaracion, si estoy recibiendo muchos mails?"
+============================================================
+ 
+2026-05-07 21:55:24 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:25 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+╭────────────────────────── Respuesta del asistente ───────────────────────────╮
+│ Necesito un poco más de contexto para ayudarte. Indícame si tu consulta se   │
+│ relaciona con aclaraciones bancarias, cancelación de productos, incidencias  │
+│ operativas, actualización de datos del cliente o quejas internas.            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resumen:
+{
+  "conversation_id": "demo-001",
+  "process_id": null,
+  "process_name": null,
+  "agent_used": "OrquestadorAgentes",
+  "tools_used": []
+}
+
+============================================================
+COMANDO: Pregunta fuera de alcance
+PS> docker compose --ansi never run --rm app python -m app.principal chat "Dime cuales son los ingresos de la compania"
+============================================================
+ 
+2026-05-07 21:55:29 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:29 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+╭────────────────────────── Respuesta del asistente ───────────────────────────╮
+│ No cuento con información para responder esa consulta, porque mi alcance     │
+│ está limitado a procesos operativos internos de BANCOMEX. Puedo ayudarte con │
+│ aclaraciones bancarias, cancelación de productos, incidencias operativas,    │
+│ actualización de datos del cliente o quejas internas.                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resumen:
+{
+  "conversation_id": "demo-001",
+  "process_id": null,
+  "process_name": null,
+  "agent_used": "OrquestadorAgentes",
+  "tools_used": []
+}

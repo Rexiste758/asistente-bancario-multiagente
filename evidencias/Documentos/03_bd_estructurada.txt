@@ -1,27 +1,131 @@
-﻿**********************
-Inicio de la transcripción de Windows PowerShell
-Hora de inicio: 20260507140809
-Nombre de usuario: LAPTOP-D7SGHFMT\joshu
-Usuario RunAs: LAPTOP-D7SGHFMT\joshu
-Nombre de la configuración: 
-Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
-Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-Id. de proceso: 2564
-PSVersion: 5.1.26100.8115
-PSEdition: Desktop
-PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
-BuildVersion: 10.0.26100.8115
-CLRVersion: 4.0.30319.42000
-WSManStackVersion: 3.0
-PSRemotingProtocolVersion: 2.3
-SerializationVersion: 1.1.0.1
-**********************
-La transcripción ha comenzado. El archivo de salida es evidencias\03_bd_estructurada.txt
+﻿ Evidencia de base de datos estructurada
 
+============================================================
+COMANDO: Inicializar base de datos
+PS> docker compose --ansi never run --rm app python -m app.base_datos.inicializar_bd
+============================================================
 
+2026-05-07 21:23:28 | INFO | __main__ | Base de datos inicializada. Registros cargados: 5
+                     Procesos operativos cargados en SQLite                     
+┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃        ┃             ┃ Área        ┃             ┃              ┃            ┃
+┃ Código ┃ Proceso     ┃ responsable ┃ Tiempo      ┃ Canal        ┃ Criticidad ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ A      │ Atención de │ Centro de   │ 48 horas    │ Portal       │ Media      │
+│        │ aclaracion… │ Atención y  │ hábiles     │ interno de   │            │
+│        │ bancarias   │ Resolución  │             │ aclaracione… │            │
+│        │             │ Bancaria    │             │ sucursal o   │            │
+│        │             │             │             │ contact      │            │
+│        │             │             │             │ center       │            │
+│ B      │ Cancelación │ Mesa de     │ 72 horas    │ Mesa de      │ Alta       │
+│        │ de          │ Operaciones │ hábiles     │ servicio     │            │
+│        │ productos   │ de          │             │ interna o    │            │
+│        │ financieros │ Productos   │             │ sucursal     │            │
+│ C      │ Escalamien… │ Coordinaci… │ 24 horas    │ Mesa de      │ Alta       │
+│        │ de          │ de Soporte  │ hábiles     │ ayuda        │            │
+│        │ incidencias │ Operativo   │             │ operativa    │            │
+│        │ operativas  │             │             │              │            │
+│ D      │ Actualizac… │ Unidad de   │ 24 a 48     │ Portal       │ Media      │
+│        │ de datos    │ Administra… │ horas       │ interno de   │            │
+│        │ del cliente │ de Datos    │ hábiles     │ mantenimien… │            │
+│        │             │ del Cliente │             │ de clientes  │            │
+│ E      │ Gestión de  │ Oficina de  │ 5 días      │ Sistema      │ Alta       │
+│        │ quejas      │ Calidad     │ hábiles     │ interno de   │            │
+│        │ internas    │ Operativa y │             │ quejas y     │            │
+│        │             │ Cumplimien… │             │ cumplimiento │            │
+│        │             │ Interno     │             │              │            │
+└────────┴─────────────┴─────────────┴─────────────┴──────────────┴────────────┘
+Base creada correctamente: data/sqlite/bank_processes.db
 
+============================================================
+COMANDO: Listar procesos desde SQLite
+PS> docker compose --ansi never run --rm app python -m app.principal listar-procesos
+============================================================
+ 
+               Procesos disponibles                
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Código ┃ Proceso                                ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ A      │ Atención de aclaraciones bancarias     │
+│ B      │ Cancelación de productos financieros   │
+│ C      │ Escalamiento de incidencias operativas │
+│ D      │ Actualización de datos del cliente     │
+│ E      │ Gestión de quejas internas             │
+└────────┴────────────────────────────────────────┘
 
-**********************
-Fin de la transcripción de Windows PowerShell
-Hora de finalización: 20260507140821
-**********************
+Trazabilidad BD:
+{
+  "type": "database",
+  "details": {
+    "query_id": "list_procesos_operativos",
+    "sql": "SELECT proceso_id, nombre_proceso FROM procesos_operativos ORDER BY proceso_id",
+    "params": [],
+    "fields": [
+      "proceso_id",
+      "nombre_proceso"
+    ],
+    "table": "procesos_operativos"
+  }
+}
+
+============================================================
+COMANDO: Consultar tiempo promedio proceso A
+PS> docker compose --ansi never run --rm app python -m app.principal probar-bd A tiempo_promedio_resolucion
+============================================================
+ 
+Resultado BD:
+{
+  "tiempo_promedio_resolucion": "48 horas hábiles"
+}
+
+Trazabilidad BD:
+{
+  "type": "database",
+  "details": {
+    "query_id": "get_tiempo_resolucion_by_process",
+    "sql": "SELECT tiempo_promedio_resolucion FROM procesos_operativos WHERE proceso_id = ?",
+    "params": [
+      "A"
+    ],
+    "fields": [
+      "tiempo_promedio_resolucion"
+    ],
+    "table": "procesos operativos",
+    "process_id": "A"
+  }
+}
+
+============================================================
+COMANDO: Consultar resumen operativo proceso E
+PS> docker compose --ansi never run --rm app python -m app.principal probar-bd E resumen_operativo
+============================================================
+ 
+Resultado BD:
+{
+  "nombre_proceso": "Gestión de quejas internas",
+  "area_responsable": "Oficina de Calidad Operativa y Cumplimiento Interno",
+  "tiempo_promedio_resolucion": "5 días hábiles",
+  "canal_atencion": "Sistema interno de quejas y cumplimiento",
+  "nivel_criticidad": "Alta"
+}
+
+Trazabilidad BD:
+{
+  "type": "database",
+  "details": {
+    "query_id": "get_resumen_operativo_by_process",
+    "sql": "SELECT nombre_proceso, area_responsable, tiempo_promedio_resolucion, canal_atencion, nivel_criticidad FROM procesos_operativos WHERE proceso_id = ?",
+    "params": [
+      "E"
+    ],
+    "fields": [
+      "nombre_proceso",
+      "area_responsable",
+      "tiempo_promedio_resolucion",
+      "canal_atencion",
+      "nivel_criticidad"
+    ],
+    "table": "procesos_operativos",
+    "process_id": "E"
+  }
+}

@@ -179,7 +179,7 @@ Proceso asignado:
 
 Herramientas disponibles:
 1. RAGTool
-   Úsala cuando el usuario pida información documental o procedimental:
+   Úsala cuando el usuario pida información que debe recuperarse desde documentos RAG:
    objetivo, alcance, flujo, pasos, requisitos, validaciones, escalamiento, cierre,
    explicación del proceso o reglas operativas documentadas.
 
@@ -234,7 +234,7 @@ Respuesta:
 
 Pregunta: "Explícame cuándo se escala"
 Respuesta:
-{{"tools":["RAGTool"],"tipo_consulta_bd":"ninguna","motivo":"El usuario solicita información procedimental documentada.","confianza":"alta"}}
+{{"tools":["RAGTool"],"tipo_consulta_bd":"ninguna","motivo": "El usuario solicita información del procedimiento, lo cual debe recuperarse desde documentos RAG.","confianza":"alta"}}
 
 Pregunta del usuario:
 {pregunta}

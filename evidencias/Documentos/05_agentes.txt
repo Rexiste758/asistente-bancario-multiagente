@@ -1,26 +1,425 @@
-﻿**********************
-Inicio de la transcripción de Windows PowerShell
-Hora de inicio: 20260507141018
-Nombre de usuario: LAPTOP-D7SGHFMT\joshu
-Usuario RunAs: LAPTOP-D7SGHFMT\joshu
-Nombre de la configuración: 
-Máquina: LAPTOP-D7SGHFMT (Microsoft Windows NT 10.0.26200.0)
-Aplicación host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-Id. de proceso: 2564
-PSVersion: 5.1.26100.8115
-PSEdition: Desktop
-PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.8115
-BuildVersion: 10.0.26100.8115
-CLRVersion: 4.0.30319.42000
-WSManStackVersion: 3.0
-PSRemotingProtocolVersion: 2.3
-SerializationVersion: 1.1.0.1
-**********************
-La transcripción ha comenzado. El archivo de salida es evidencias\05_agentes.txt
+﻿ Evidencia de agentes especializados
 
+============================================================
+COMANDO: Agente Aclaraciones con RAG
+PS> docker compose --ansi never run --rm app python -m app.principal probar-agente A "Cuando debe escalarse una aclaracion bancaria?"
+============================================================
+ 
+2026-05-07 21:53:33 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:53:34 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteAclaraciones | proceso=A | tools=['RAGTool'] | bd=ninguna
+[0;93m2026-05-07 21:53:34.781044617 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card0": device_discovery.cc:93 ReadFileContents Failed to open file: 
+"/sys/class/drm/card0/device/vendor"[m
+2026-05-07 21:53:41 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:53:41 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:54:01 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=A | top_k=3 | estrategia=similarity
 
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 16.25it/s]
+2026-05-07 21:54:01 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:54:01 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+╭─────────────────────── AgenteAclaraciones - Proceso A ───────────────────────╮
+│ De acuerdo con el procedimiento operativo interno de BANCOMEX, una           │
+│ aclaración bancaria debe escalarse cuando se presente al menos una de las    │
+│ siguientes condiciones:                                                      │
+│                                                                              │
+│ - **Posible fraude**.                                                        │
+│ - **Montos altos**.                                                          │
+│ - **Inconsistencias entre sistemas**.                                        │
+│ - **Afectación a varios clientes**.                                          │
+│ - **Falta de evidencia suficiente para resolver en primer nivel**.           │
+│                                                                              │
+│ El escalamiento debe incluir el motivo, la evidencia revisada, los sistemas  │
+│ consultados y el área destino. No debe prometerse una resolución antes de    │
+│ recibir confirmación del área responsable de atender el escalamiento.        │
+╰──────────────────────────────────────────────────────────────────────────────╯
 
-**********************
-Fin de la transcripción de Windows PowerShell
-Hora de finalización: 20260507141150
-**********************
+Resumen de ejecución:
+{
+  "process_id": "A",
+  "process_name": "Atención de aclaraciones bancarias",
+  "agent_used": "AgenteAclaraciones",
+  "tools_used": [
+    "RAGTool"
+  ],
+  "tool_decision": {
+    "tools": [
+      "RAGTool"
+    ],
+    "tipo_consulta_bd": "ninguna",
+    "motivo": "El usuario pregunta sobre cuándo debe escalarse una aclaración bancaria, lo cual es información del procedimiento documentado en RAG.",
+    "confianza": "alta"
+  }
+}
+
+Trazabilidad completa:
+[
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.0,
+      "max_tokens": 300,
+      "api_key": "configurada_no_expuesta",
+      "usage": "clasificador_herramientas",
+      "decision": {
+        "tools": [
+          "RAGTool"
+        ],
+        "tipo_consulta_bd": "ninguna",
+        "motivo": "El usuario pregunta sobre cuándo debe escalarse una aclaración bancaria, lo cual es información del procedimiento documentado en RAG.",
+        "confianza": "alta"
+      }
+    }
+  },
+  {
+    "type": "rag",
+    "details": {
+      "vector_store": "ChromaDB",
+      "collection": "bank_processes",
+      "search_strategy": "similarity",
+      "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "embedding_dimension": 384,
+      "chunk_size": 1200,
+      "chunk_overlap": 1,
+      "top_k": 3,
+      "process_id": "A",
+      "chunks_found": 3,
+      "sources": [
+        {
+          "chunk_id": "A_002",
+          "source_file": "A_aclaraciones_bancarias.docx",
+          "chunk_index": 2,
+          "distance": 0.4539492812309812,
+          "text_preview": "2. Objetivo El objetivo del proceso es asegurar que toda aclaración bancaria sea atendida de forma ordenada, trazable y respaldada por evidencia operativa. La revisión debe realizarse con base en información disponible en sistemas autorizados de BANCOMEX, evitando conclusiones sin soporte documental. El proceso busca proteger la integridad de la información operativa, mantener seguimiento oportuno de cada caso y comunicar una respuesta clara sobre la procedencia o no procedencia de la aclaración. 3. Alcance Este procedimiento aplica cuando un cliente solicita revisión sobre una operación que considera incorrecta, desconocida, incompleta o no aplicada. También aplica cuando un área interna detecta una posible inconsistencia relacionada con cargos, abonos, comisiones o conciliaciones. No corresponde a este proceso atender cancelaciones de productos, actualización de datos del cliente, quej"
+        },
+        {
+          "chunk_id": "A_006",
+          "source_file": "A_aclaraciones_bancarias.docx",
+          "chunk_index": 6,
+          "distance": 0.5429365614352186,
+          "text_preview": "7. Escalamiento y cierre Una aclaración debe escalarse cuando involucra posible fraude, montos altos, inconsistencias entre sistemas, afectación a varios clientes o falta de evidencia suficiente para resolver en primer nivel. El escalamiento debe incluir motivo, evidencia revisada, sistemas consultados y área destino. No debe prometerse una resolución antes de recibir confirmación del área responsable de atender el escalamiento. El cierre puede clasificarse como procedente, no procedente, pendiente de información o escalado. En todos los casos debe quedar evidencia del análisis realizado, estado final, motivo de la decisión y acción correctiva cuando aplique. La respuesta final debe ser clara, verificable y limitada a la información confirmada durante la revisión del caso."
+        },
+        {
+          "chunk_id": "A_001",
+          "source_file": "A_aclaraciones_bancarias.docx",
+          "chunk_index": 1,
+          "distance": 0.5922757931615124,
+          "text_preview": "Atención de aclaraciones bancarias Código de proceso: A Nombre del proceso: Atención de aclaraciones bancarias Institución: BANCOMEX Tipo de documento: Procedimiento operativo interno 1. Identificación del proceso Código de proceso: A Nombre del proceso: Atención de aclaraciones bancarias Institución: BANCOMEX Tipo de documento: Procedimiento operativo interno El proceso de atención de aclaraciones bancarias forma parte de los procedimientos internos de BANCOMEX para revisar inconformidades relacionadas con operaciones registradas en productos financieros del cliente. Este procedimiento permite registrar, analizar y resolver solicitudes donde exista duda sobre cargos, abonos, comisiones, pagos aplicados, transferencias, retiros, depósitos u otros movimientos reflejados en los sistemas internos del banco. 2. Objetivo"
+        }
+      ]
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.1,
+      "max_tokens": 700,
+      "api_key": "configurada_no_expuesta",
+      "usage": "respuesta_final"
+    }
+  }
+]
+
+============================================================
+COMANDO: Agente Cancelacion con RAG y BD
+PS> docker compose --ansi never run --rm app python -m app.principal probar-agente B "Explicame como se cancela un producto y cuanto tarda"
+============================================================
+ 
+2026-05-07 21:54:09 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:54:10 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteCancelacion | proceso=B | tools=['RAGTool', 'DatabaseTool'] | bd=tiempo_promedio_resolucion
+[0;93m2026-05-07 21:54:10.893492343 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card0": device_discovery.cc:93 ReadFileContents Failed to open file: 
+"/sys/class/drm/card0/device/vendor"[m
+2026-05-07 21:54:14 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:54:14 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:54:33 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=B | top_k=3 | estrategia=similarity
+
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 52.60it/s]
+2026-05-07 21:54:33 | INFO | app.herramientas.herramienta_bd | HerramientaBD ejecutando consulta | query_id=get_tiempo_resolucion_by_process | proceso_id=B | campos=['tiempo_promedio_resolucion']
+2026-05-07 21:54:33 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:54:34 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+╭─────────────────────── AgenteCancelacion - Proceso B ────────────────────────╮
+│ De acuerdo con la información disponible, el proceso de cancelación de un    │
+│ producto financiero en BANCOMEX sigue estos pasos:                           │
+│                                                                              │
+│ 1. **Registro de la solicitud**: Se inicia registrando la solicitud en el    │
+│ canal autorizado, identificando al cliente, el producto a cancelar, el canal │
+│ de solicitud, el motivo y validando la identidad o autorización interna.     │
+│                                                                              │
+│ 2. **Validaciones obligatorias**: Antes de proceder, se debe verificar que:  │
+│    - El producto exista y pertenezca al cliente.                             │
+│    - La solicitud esté autorizada.                                           │
+│    - No existan saldos pendientes, cargos en tránsito, operaciones           │
+│ retenidas, bloqueos preventivos, reclamaciones abiertas o dependencias con   │
+│ otros productos.                                                             │
+│    - No haya productos vinculados, domiciliaciones, servicios recurrentes o  │
+│ restricciones regulatorias.                                                  │
+│                                                                              │
+│ 3. **Cierre operativo**: Si no hay restricciones, se procede al cierre,      │
+│ documentando la fecha, canal, producto cancelado y evidencia de validación.  │
+│ Si se detecta una condición que impida cancelar, se informa el motivo y se   │
+│ registra la acción necesaria para continuar.                                 │
+│                                                                              │
+│ **Tiempo estimado**: El tiempo promedio de resolución para este proceso es   │
+│ de **72 horas hábiles**.                                                     │
+│                                                                              │
+│ Es importante señalar que si durante la revisión se identifica una           │
+│ inconformidad sobre movimientos, comisiones o cargos, el caso debe           │
+│ canalizarse al proceso de atención de aclaraciones bancarias, no a este      │
+│ procedimiento de cancelación.                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resumen de ejecución:
+{
+  "process_id": "B",
+  "process_name": "Cancelación de productos financieros",
+  "agent_used": "AgenteCancelacion",
+  "tools_used": [
+    "RAGTool",
+    "DatabaseTool"
+  ],
+  "tool_decision": {
+    "tools": [
+      "RAGTool",
+      "DatabaseTool"
+    ],
+    "tipo_consulta_bd": "tiempo_promedio_resolucion",
+    "motivo": "El usuario solicita explicación del procedimiento de cancelación (RAGTool) y también pregunta por la duración (DatabaseTool con tiempo_promedio_resolucion).",
+    "confianza": "alta"
+  }
+}
+
+Trazabilidad completa:
+[
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.0,
+      "max_tokens": 300,
+      "api_key": "configurada_no_expuesta",
+      "usage": "clasificador_herramientas",
+      "decision": {
+        "tools": [
+          "RAGTool",
+          "DatabaseTool"
+        ],
+        "tipo_consulta_bd": "tiempo_promedio_resolucion",
+        "motivo": "El usuario solicita explicación del procedimiento de cancelación (RAGTool) y también pregunta por la duración (DatabaseTool con tiempo_promedio_resolucion).",
+        "confianza": "alta"
+      }
+    }
+  },
+  {
+    "type": "rag",
+    "details": {
+      "vector_store": "ChromaDB",
+      "collection": "bank_processes",
+      "search_strategy": "similarity",
+      "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "embedding_dimension": 384,
+      "chunk_size": 1200,
+      "chunk_overlap": 1,
+      "top_k": 3,
+      "process_id": "B",
+      "chunks_found": 3,
+      "sources": [
+        {
+          "chunk_id": "B_002",
+          "source_file": "B_cancelacion_productos.docx",
+          "chunk_index": 2,
+          "distance": 0.3009585639252971,
+          "text_preview": "2. Objetivo El objetivo es asegurar que la cancelación de productos financieros se realice de manera controlada, documentada y sin afectar obligaciones pendientes del cliente o del banco. La cancelación debe ejecutarse únicamente cuando existan condiciones operativas válidas, autorización suficiente y evidencia de que no hay bloqueos, cargos en proceso, investigaciones activas, operaciones retenidas o restricciones internas que impidan completar el cierre. 3. Alcance Este procedimiento aplica cuando el cliente solicita cancelar un producto financiero o cuando un área interna requiere cerrar un producto por una condición operativa documentada. No cubre aclaraciones por cargos o movimientos, actualización de datos personales, quejas internas ni incidencias técnicas. Si durante la revisión se identifica una inconformidad sobre movimientos, comisiones o cargos, el caso debe canalizarse al pr"
+        },
+        {
+          "chunk_id": "B_003",
+          "source_file": "B_cancelacion_productos.docx",
+          "chunk_index": 3,
+          "distance": 0.3339966348815384,
+          "text_preview": "4. Entradas requeridas Para iniciar la cancelación se requiere identificar al cliente, producto a cancelar, canal de solicitud, motivo de cancelación y validación de identidad o autorización interna. Cuando aplique, deben revisarse documentos soporte, consentimiento del cliente, saldos vigentes, productos relacionados y condiciones contractuales. Si falta documentación o existen restricciones operativas, el caso debe permanecer pendiente hasta completar la información requerida. 5. Flujo operativo"
+        },
+        {
+          "chunk_id": "B_004",
+          "source_file": "B_cancelacion_productos.docx",
+          "chunk_index": 4,
+          "distance": 0.3697109723926686,
+          "text_preview": "5. Flujo operativo El proceso inicia con el registro de la solicitud en el canal autorizado. El responsable valida que el producto exista, que pertenezca al cliente y que la solicitud esté autorizada. Después revisa si el producto tiene saldo pendiente, cargos en tránsito, operaciones retenidas, bloqueos preventivos, reclamaciones abiertas o dependencias con otros productos. Si no existen restricciones, se procede con el cierre operativo y se documenta la fecha, canal, producto cancelado y evidencia de validación. Si se detecta una condición que impide cancelar, se informa el motivo y se registra la acción necesaria para continuar. Ningún producto debe cerrarse cuando exista una operación pendiente que pueda generar afectaciones posteriores. 6. Validaciones obligatorias Antes de cancelar un producto, debe validarse la identidad del cliente, el estado del producto, saldos, movimientos pen"
+        }
+      ]
+    }
+  },
+  {
+    "type": "database",
+    "details": {
+      "query_id": "get_tiempo_resolucion_by_process",
+      "sql": "SELECT tiempo_promedio_resolucion FROM procesos_operativos WHERE proceso_id = ?",
+      "params": [
+        "B"
+      ],
+      "fields": [
+        "tiempo_promedio_resolucion"
+      ],
+      "table": "procesos_operativos",
+      "process_id": "B"
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.1,
+      "max_tokens": 700,
+      "api_key": "configurada_no_expuesta",
+      "usage": "respuesta_final"
+    }
+  }
+]
+
+============================================================
+COMANDO: Agente Quejas con RAG
+PS> docker compose --ansi never run --rm app python -m app.principal probar-agente E "Que necesito para levantar una queja?"
+============================================================
+ 
+2026-05-07 21:54:42 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-07 21:54:44 | INFO | app.agentes.agente_especializado_base | Agente especializado clasificó herramientas | agente=AgenteQuejas | proceso=E | tools=['RAGTool'] | bd=ninguna
+[0;93m2026-05-07 21:54:44.699034714 [W:onnxruntime:Default, device_discovery.cc:283 GetGpuDevices] Failed to detect devices under "/sys/class/drm/card0": device_discovery.cc:93 ReadFileContents Failed to open file: 
+"/sys/class/drm/card0/device/vendor"[m
+2026-05-07 21:54:48 | INFO | sentence_transformers.SentenceTransformer | Use pytorch device_name: cpu
+2026-05-07 21:54:48 | INFO | sentence_transformers.SentenceTransformer | Load pretrained SentenceTransformer: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+2026-05-07 21:55:07 | INFO | app.herramientas.herramienta_rag | HerramientaRAG buscando contexto | proceso=E | top_k=3 | estrategia=similarity
+
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]
+Batches: 100%|██████████| 1/1 [00:00<00:00, 52.62it/s]
+2026-05-07 21:55:07 | INFO | app.llm.cliente_llm | ClienteLLM enviando solicitud | proveedor=deepseek | modelo=deepseek-v4-flash | thinking=disabled
+2026-05-07 21:55:08 | INFO | httpx | HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+╭────────────────────────── AgenteQuejas - Proceso E ──────────────────────────╮
+│ Para levantar una queja interna en BANCOMEX, necesitas proporcionar la       │
+│ siguiente información, según el procedimiento establecido:                   │
+│                                                                              │
+│ - **Descripción del caso**: Explicación clara de la inconformidad.           │
+│ - **Área involucrada**: Nombre del departamento o unidad responsable del     │
+│ hecho reportado.                                                             │
+│ - **Fecha**: Fecha en que ocurrió el incidente o en que se detectó la        │
+│ situación.                                                                   │
+│ - **Canal de origen**: Medio por el cual se recibió o detectó la queja (por  │
+│ ejemplo, correo, sistema, llamada, etc.).                                    │
+│ - **Evidencia disponible**: Documentos, correos, registros o cualquier       │
+│ soporte que respalde el reporte.                                             │
+│ - **Impacto observado**: Consecuencias o efectos de la situación reportada.  │
+│ - **Datos del responsable que reporta**: Nombre y datos de contacto del      │
+│ colaborador o área que presenta la queja.                                    │
+│                                                                              │
+│ Adicionalmente, si la queja está relacionada con un proceso operativo        │
+│ específico, debes incluir el **folio o referencia del caso asociado** para   │
+│ facilitar su análisis.                                                       │
+│                                                                              │
+│ Si la información proporcionada es insuficiente, se te solicitará            │
+│ complementarla antes de iniciar el análisis.                                 │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resumen de ejecución:
+{
+  "process_id": "E",
+  "process_name": "Gestión de quejas internas",
+  "agent_used": "AgenteQuejas",
+  "tools_used": [
+    "RAGTool"
+  ],
+  "tool_decision": {
+    "tools": [
+      "RAGTool"
+    ],
+    "tipo_consulta_bd": "ninguna",
+    "motivo": "El usuario pregunta qué necesita para levantar una queja, lo cual corresponde a requisitos o pasos del proceso documentados en RAG.",
+    "confianza": "alta"
+  }
+}
+
+Trazabilidad completa:
+[
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.0,
+      "max_tokens": 300,
+      "api_key": "configurada_no_expuesta",
+      "usage": "clasificador_herramientas",
+      "decision": {
+        "tools": [
+          "RAGTool"
+        ],
+        "tipo_consulta_bd": "ninguna",
+        "motivo": "El usuario pregunta qué necesita para levantar una queja, lo cual corresponde a requisitos o pasos del proceso documentados en RAG.",
+        "confianza": "alta"
+      }
+    }
+  },
+  {
+    "type": "rag",
+    "details": {
+      "vector_store": "ChromaDB",
+      "collection": "bank_processes",
+      "search_strategy": "similarity",
+      "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "embedding_dimension": 384,
+      "chunk_size": 1200,
+      "chunk_overlap": 1,
+      "top_k": 3,
+      "process_id": "E",
+      "chunks_found": 3,
+      "sources": [
+        {
+          "chunk_id": "E_004",
+          "source_file": "E_quejas_internas.docx",
+          "chunk_index": 4,
+          "distance": 0.5095994516259355,
+          "text_preview": "7. Escalamiento y cierre La queja debe escalarse cuando exista posible incumplimiento normativo, afectación a clientes, reincidencia, conflicto entre áreas, falta de respuesta del responsable asignado o posible desviación de controles internos. El escalamiento debe quedar documentado con motivo, evidencia y área destino. El cierre debe incluir conclusión, acciones correctivas si aplican, responsable de seguimiento y fecha de resolución. No deben afirmarse sanciones, responsables o decisiones sin soporte documental. Si la información no permite concluir el caso, debe permanecer en seguimiento hasta contar con evidencia suficiente."
+        },
+        {
+          "chunk_id": "E_002",
+          "source_file": "E_quejas_internas.docx",
+          "chunk_index": 2,
+          "distance": 0.6675806120115781,
+          "text_preview": "3. Alcance Este procedimiento aplica cuando un colaborador, área interna o canal autorizado reporta una inconformidad sobre atención recibida, incumplimiento de procedimientos, demoras injustificadas, trato inadecuado, falta de seguimiento o posibles desviaciones operativas. No reemplaza los procesos de aclaraciones, cancelación de productos, actualización de datos o incidencias técnicas, aunque puede recibir casos derivados cuando exista una inconformidad formal sobre la gestión. 4. Entradas requeridas Para registrar una queja interna se requiere descripción del caso, área involucrada, fecha, canal de origen, evidencia disponible, impacto observado y datos del responsable que reporta. Cuando la información es insuficiente, se solicita complemento antes de iniciar análisis. Si la queja se relaciona con un proceso operativo específico, debe incluirse el folio o referencia del caso asociad"
+        },
+        {
+          "chunk_id": "E_003",
+          "source_file": "E_quejas_internas.docx",
+          "chunk_index": 3,
+          "distance": 0.6825981765734412,
+          "text_preview": "5. Flujo operativo La queja se registra en el sistema interno correspondiente. La instancia encargada revisa la información inicial, valida que no exista duplicidad y asigna un responsable de análisis. Según la naturaleza del caso, puede requerirse revisión de expedientes, tiempos de atención, comunicaciones internas, cumplimiento de procedimiento o participación de otra área. Durante el análisis se documentan hallazgos, evidencias revisadas y acciones solicitadas. Si se requiere respuesta de otra área, se establece un plazo de atención y se da seguimiento hasta recibir información suficiente. La queja no debe cerrarse sin conclusión documentada. 6. Validaciones obligatorias Antes de cerrar una queja, debe validarse que el caso esté completo, que la evidencia haya sido revisada, que el área involucrada haya tenido oportunidad de responder y que la conclusión esté respaldada por informaci"
+        }
+      ]
+    }
+  },
+  {
+    "type": "llm",
+    "details": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "base_url": "https://api.deepseek.com",
+      "thinking": "disabled",
+      "temperature": 0.1,
+      "max_tokens": 700,
+      "api_key": "configurada_no_expuesta",
+      "usage": "respuesta_final"
+    }
+  }
+]
