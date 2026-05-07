@@ -313,5 +313,53 @@ def probar_catalogo(
 
     consola.print(tabla)
 
+
+@cli.command("probar-agente")
+def probar_agente(
+    proceso_id: str = typer.Argument(..., help="Código del proceso: A, B, C, D o E."),
+    pregunta: str = typer.Argument(..., help="Pregunta para el agente especializado."),
+) -> None:
+    """
+    Prueba un agente especializado concreto sin pasar todavía por el orquestador.
+    """
+    preparar_carpetas_runtime()
+    configurar_logs()
+
+    from app.agentes.agentes_proceso import crear_agente_por_proceso
+
+    try:
+        agente = crear_agente_por_proceso(proceso_id)
+    except ValueError as error:
+        consola.print(f"[red]{error}[/red]")
+        raise typer.Exit(code=1)
+
+    respuesta = agente.responder(pregunta)
+
+    consola.print(
+        Panel(
+            respuesta["answer"],
+            title=f"{respuesta['agent_used']} - Proceso {respuesta['process_id']}",
+        )
+    )
+
+    consola.print("\n[bold]Resumen de ejecución:[/bold]")
+    consola.print_json(
+        json.dumps(
+            {
+                "process_id": respuesta["process_id"],
+                "process_name": respuesta["process_name"],
+                "agent_used": respuesta["agent_used"],
+                "tools_used": respuesta["tools_used"],
+                "tool_decision": respuesta["tool_decision"],
+            },
+            ensure_ascii=False,
+        )
+    )
+
+    consola.print("\n[bold]Trazabilidad completa:[/bold]")
+    consola.print_json(
+        json.dumps(respuesta["sources"], ensure_ascii=False)
+    )
+
 if __name__ == "__main__":
     cli()
