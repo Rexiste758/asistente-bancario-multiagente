@@ -130,5 +130,5 @@ El proyecto separa responsabilidades en los siguientes componentes:
 
 </table>
 
-'@ | Set-Content -Path "evidencias\\Documentos\\01\_arquitectura\_p.md" -Encoding UTF8
+'@ | Set-Content -Path "evidencias\\Documentos\\01\_arquitectura.md" -Encoding UTF8
 
