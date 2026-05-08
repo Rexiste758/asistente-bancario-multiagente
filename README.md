@@ -13,7 +13,7 @@ El objetivo del proyecto es construir un asistente conversacional interno capaz 
 - Consultar datos estructurados en una base SQLite.
 - Mantener contexto conversacional entre turnos.
 - Separar responsabilidades entre orquestador, agentes especializados y herramientas.
-- Entregar trazabilidad de las fuentes utilizadas: orquestador, LLM, RAG y base de datos.
+- Entregar trazabilidad de las fuentes utilizadas: RAG y base de datos.
 
 ---
 
